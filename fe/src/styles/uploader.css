@@ -1,0 +1,28 @@
+.zona-carga{
+    border: 2px dashed #a8a8a8;
+    border-radius: 10px;
+    margin: 20px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    background-color: white;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.zona-carga:hover,
+.zona-carga-activa{
+    border-color: indigo;
+    background-color: #f5f3ff;
+}
+
+.icono-carga{
+    font-size: 40px;
+    color: indigo;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.zona-carga p{
+    margin: 4px 0;
+    color: #333;
+}

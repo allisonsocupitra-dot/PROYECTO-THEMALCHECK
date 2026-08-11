@@ -46,8 +46,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onArchivosSeleccionados }
       }}
     >
       <i className="fa-solid fa-cloud-arrow-up icono-carga"></i>
-      <p>{t('uploader.arrastra')}</p>
-      <p className="texto-suave">{t('uploader.click')}</p>
 
       <input
         ref={inputRef}

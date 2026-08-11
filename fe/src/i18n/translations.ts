@@ -58,13 +58,6 @@ export const traducciones: Record<string, Entrada> = {
   'dashboard.edicion': { es: 'Edición por lotes', en: 'Batch editing' },
   'dashboard.seleccionarTodo': { es: 'Seleccionar todo', en: 'Select all' },
 
-  // Carga de imágenes
-  'uploader.arrastra': { es: 'Arrastra tus imágenes termográficas aquí', en: 'Drag your thermal images here' },
-  'uploader.click': {
-    es: 'o haz clic para seleccionar archivos (JPG, PNG, TIFF)',
-    en: 'or click to select files (JPG, PNG, TIFF)',
-  },
-
   // Visor
   'visor.vacio': {
     es: 'Aún no has cargado imágenes. Ve al explorador para subir las primeras.',

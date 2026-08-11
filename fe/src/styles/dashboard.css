@@ -41,6 +41,10 @@
     padding: 0;
 }
 
+.boton-nav-lateral:hover{
+    background-color: transparent;
+}
+
 .boton-nav-lateral i{
     font-size: 28px;
     color: #333;
@@ -74,6 +78,10 @@
     padding: 0;
 }
 
+.boton-logout:hover{
+    background-color: transparent;
+}
+
 .boton-logout i{
     font-size: 28px;
     color: #333;
@@ -82,8 +90,7 @@
 
 .boton-logout i:hover{
     font-size: 30px;
-    color: rgb(172, 63, 0);
-    transform: scaleX(-1);
+    color: indigo;
 }
 
 .explorador-contenido{
@@ -102,6 +109,7 @@
     background-color: white;
     border-bottom: 1px solid #a8a8a8;
     align-items: center;
+    justify-items: start;
 }
 
 /* Usada en Visor / Reportes: páginas que solo necesitan un título, sin la grilla de botones */
@@ -113,6 +121,7 @@
     font-size: 14px;
     color: black;
     margin-right: 30px;
+    grid-column: 1 / span 3;
 }
 
 .texto-suave{
@@ -121,32 +130,22 @@
     grid-column: 6;
 }
 
-.boton-exportar{
-    grid-column: 3;
-    width: 130px;
-    height: 30px;
-    padding: 2px;
-}
-
-.boton-edicion{
-    grid-column: 4;
-    width: 130px;
-    height: 30px;
-    padding: 2px;
-}
-
 .boton-seleccion{
     grid-column: 8;
-    width: 130px;
-    height: 30px;
+    width: 110px;
+    height: 40px;
     border-radius: 5px;
     border: none;
     background-color: transparent;
     cursor: pointer;
+    color:#949494;
+    font-size: 14px;
+    padding-top: 5px;
 }
 
 .boton-seleccion:hover{
-    background-color: #f0f0f0;
+    background-color: #e0dfdf;
+    color: #5a5a5a;
 }
 
 /* ---- Carpetas del explorador ---- */
@@ -180,6 +179,7 @@
 .btn-nueva-carpeta:hover{
     border-color: indigo;
     color: indigo;
+    background-color: #f5f3ff;
 }
 
 .form-nueva-carpeta{

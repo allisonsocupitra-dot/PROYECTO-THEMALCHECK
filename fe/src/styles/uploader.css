@@ -2,7 +2,9 @@
     border: 2px dashed #a8a8a8;
     border-radius: 10px;
     margin: 20px;
-    padding: 40px 20px;
+    padding: 25px;
+    height: 100px;
+    width: 100px;
     text-align: center;
     cursor: pointer;
     background-color: white;
@@ -20,9 +22,4 @@
     color: indigo;
     margin-bottom: 10px;
     display: block;
-}
-
-.zona-carga p{
-    margin: 4px 0;
-    color: #333;
 }

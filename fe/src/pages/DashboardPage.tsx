@@ -49,14 +49,6 @@ const DashboardPage: React.FC = () => {
           <header className="explorador-header">
             <h3>{t('nav.explorador')} {usuario ? `— ${usuario.nombre}` : ''}</h3>
 
-            <button className="boton-exportar" type="button" title={t('dashboard.exportar')}>
-              <i className="fa-solid fa-file-export"></i> {t('dashboard.exportar')}
-            </button>
-
-            <button className="boton-edicion" type="button" title={t('dashboard.edicion')}>
-              <i className="fa-solid fa-gear"></i> {t('dashboard.edicion')}
-            </button>
-
             <span className="texto-suave">
               ({carpetaActiva.imagenes.length} {t('carpetas.items')})
             </span>

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import { mockUsers, agregarUsuarioTecnico } from '../api/mockUsers';
-import type { Usuario } from '../types/auth';
+import { mockUsers, agregarUsuario } from '../api/mockUsers';
+import type { Usuario, Rol } from '../types/auth';
 
 interface ResultadoAuth {
   ok: boolean;
@@ -12,7 +12,7 @@ interface AuthContextType {
   usuario: Usuario | null;
   estaAutenticado: boolean;
   login: (correo: string, contraseña: string) => ResultadoAuth;
-  registrar: (nombre: string, correo: string, contraseña: string) => ResultadoAuth;
+  registrar: (nombre: string, apellido: string, correo: string, contraseña: string, rol: Rol) => ResultadoAuth;
   logout: () => void;
 }
 
@@ -43,6 +43,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     guardarSesion({
       id: encontrado.id,
       nombre: encontrado.nombre,
+      apellido: encontrado.apellido,
       correo: encontrado.correo,
       rol: encontrado.rol,
     });
@@ -50,15 +51,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return { ok: true };
   };
 
-  // Los registros nuevos siempre quedan como "tecnico"; el rol "admin" se asigna manualmente en mockUsers.ts
-  const registrar = (nombre: string, correo: string, contraseña: string): ResultadoAuth => {
+  const registrar = (
+    nombre: string,
+    apellido: string,
+    correo: string,
+    contraseña: string,
+    rol: Rol
+  ): ResultadoAuth => {
     const yaExiste = mockUsers.some((u) => u.correo.toLowerCase() === correo.toLowerCase());
 
     if (yaExiste) {
       return { ok: false, mensaje: 'Ya existe una cuenta con ese correo' };
     }
 
-    agregarUsuarioTecnico(nombre, correo, contraseña);
+    agregarUsuario(nombre, apellido, correo, contraseña, rol);
     return { ok: true };
   };
 
@@ -68,9 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider
-      value={{ usuario, estaAutenticado: !!usuario, login, registrar, logout }}
-    >
+    <AuthContext.Provider value={{ usuario, estaAutenticado: !!usuario, login, registrar, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/authContext';
+import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import type { Rol } from '../types/auth';
 import logo from '../assets/img/logo.png';
 import '../styles/styles.css';
 import '../styles/login.css';
@@ -8,8 +10,11 @@ import '../styles/login.css';
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { registrar } = useAuth();
+  const { t } = useLanguage();
 
+  const [rol, setRol] = useState<Rol>('tecnico');
   const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [confirmacion, setConfirmacion] = useState('');
@@ -20,18 +25,17 @@ const RegisterPage: React.FC = () => {
     setError('');
 
     if (contraseña !== confirmacion) {
-      setError('Las contraseñas no coinciden');
+      setError(t('register.errorPasswords'));
       return;
     }
 
-    const resultado = registrar(nombre, correo, contraseña);
+    const resultado = registrar(nombre, apellido, correo, contraseña, rol);
 
     if (!resultado.ok) {
-      setError(resultado.mensaje ?? 'No se pudo completar el registro');
+      setError(resultado.mensaje ? t('register.errorExiste') : 'No se pudo completar el registro');
       return;
     }
 
-    // Los registros públicos siempre quedan como técnico; se pide iniciar sesión después
     navigate('/');
   };
 
@@ -39,26 +43,54 @@ const RegisterPage: React.FC = () => {
     <>
       <header className="login-header">
         <img className="logo" src={logo} alt="ThemalCheck Logo" />
-        <div className='titleThemalCheck'>
+        <div>
           <h2>ThemalCheck</h2>
-          <p>Análisis de imágenes termográficas</p>
+          <p>{t('login.subtitulo')}</p>
         </div>
       </header>
 
       <div className="login">
-        <div className="login-container titleThemalCheck">
+        <div className="login-container">
           <form onSubmit={handleSubmit}>
-            <h2>Registro</h2>
+            <h2>{t('register.titulo')}</h2>
 
             {error && <p className="mensaje-error">{error}</p>}
+
+            <div className="selector-rol-inline">
+              <button
+                type="button"
+                className={rol === 'tecnico' ? 'boton-rol-inline boton-rol-inline-activo' : 'boton-rol-inline'}
+                onClick={() => setRol('tecnico')}
+              >
+                <i className="fa-solid fa-screwdriver-wrench"></i> {t('register.rol.tecnico')}
+              </button>
+              <button
+                type="button"
+                className={rol === 'admin' ? 'boton-rol-inline boton-rol-inline-activo' : 'boton-rol-inline'}
+                onClick={() => setRol('admin')}
+              >
+                <i className="fa-solid fa-user-shield"></i> {t('register.rol.admin')}
+              </button>
+            </div>
 
             <div className="input-box">
               <i className="uil uil-user"></i>
               <input
                 type="text"
-                placeholder="Nombre completo"
+                placeholder={t('register.nombre.placeholder')}
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="input-box">
+              <i className="uil uil-user"></i>
+              <input
+                type="text"
+                placeholder={t('register.apellido.placeholder')}
+                value={apellido}
+                onChange={(e) => setApellido(e.target.value)}
                 required
               />
             </div>
@@ -67,7 +99,7 @@ const RegisterPage: React.FC = () => {
               <i className="uil uil-envelope"></i>
               <input
                 type="email"
-                placeholder="Ingrese el correo electrónico"
+                placeholder={t('register.correo.placeholder')}
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}
                 required
@@ -78,7 +110,7 @@ const RegisterPage: React.FC = () => {
               <i className="uil uil-lock"></i>
               <input
                 type="password"
-                placeholder="Crear contraseña"
+                placeholder={t('register.contrasena.placeholder')}
                 value={contraseña}
                 onChange={(e) => setContraseña(e.target.value)}
                 required
@@ -89,25 +121,25 @@ const RegisterPage: React.FC = () => {
               <i className="uil uil-lock"></i>
               <input
                 type="password"
-                placeholder="Confirmar contraseña"
+                placeholder={t('register.confirmar.placeholder')}
                 value={confirmacion}
                 onChange={(e) => setConfirmacion(e.target.value)}
                 required
               />
             </div>
 
-            <button type="submit">Registrarse</button>
+            <button type="submit">{t('register.boton')}</button>
 
             <div className="enlace-registro">
-              <p>¿Ya tienes cuenta? <Link to="/">Inicia sesión</Link></p>
+              <p>
+                {t('register.yaTienes')} <Link to="/">{t('register.inicia')}</Link>
+              </p>
             </div>
           </form>
         </div>
       </div>
 
-      <footer className="footer">
-        ThemalCheck — Análisis Termográfico | Proyecto SENA — Análisis y Desarrollo de Software | 2026
-      </footer>
+      <footer className="footer">{t('footer.texto')}</footer>
     </>
   );
 };

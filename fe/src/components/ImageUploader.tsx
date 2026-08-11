@@ -1,20 +1,15 @@
 import React, { useRef, useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import '../styles/uploader.css';
 
-export interface ImagenCargada {
-  id: string;
-  archivo: File;
-  urlPrevia: string;
-  fecha: string;
-}
-
 interface ImageUploaderProps {
-  onImagenesCargadas: (imagenes: ImagenCargada[]) => void;
+  onArchivosSeleccionados: (archivos: File[]) => void;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagenesCargadas }) => {
+const ImageUploader: React.FC<ImageUploaderProps> = ({ onArchivosSeleccionados }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [arrastrando, setArrastrando] = useState(false);
+  const { t } = useLanguage();
 
   const procesarArchivos = (archivos: FileList | null) => {
     if (!archivos || archivos.length === 0) return;
@@ -22,14 +17,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagenesCargadas }) => 
     const validos = Array.from(archivos).filter((archivo) => archivo.type.startsWith('image/'));
     if (validos.length === 0) return;
 
-    const nuevasImagenes: ImagenCargada[] = validos.map((archivo) => ({
-      id: `${archivo.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      archivo,
-      urlPrevia: URL.createObjectURL(archivo),
-      fecha: new Date().toISOString(),
-    }));
-
-    onImagenesCargadas(nuevasImagenes);
+    onArchivosSeleccionados(validos);
 
     // Permite volver a seleccionar el mismo archivo si el usuario lo retira y lo vuelve a subir
     if (inputRef.current) inputRef.current.value = '';
@@ -58,8 +46,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagenesCargadas }) => 
       }}
     >
       <i className="fa-solid fa-cloud-arrow-up icono-carga"></i>
-      <p>Arrastra tus imágenes termográficas aquí</p>
-      <p className="texto-suave">o haz clic para seleccionar archivos (JPG, PNG, TIFF)</p>
+      <p>{t('uploader.arrastra')}</p>
+      <p className="texto-suave">{t('uploader.click')}</p>
 
       <input
         ref={inputRef}

@@ -1,0 +1,73 @@
+.overlay-modal{
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.panel-modal{
+    width: 340px;
+    max-width: 90vw;
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 8px 24px;
+}
+
+.modal-encabezado{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.modal-encabezado h3{
+    font-size: 16px;
+    color: #333;
+}
+
+.modal-cerrar{
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    padding: 4px;
+}
+
+.modal-cerrar:hover{
+    color: rgb(172, 63, 0);
+}
+
+.modal-cuerpo h4{
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.selector-idioma{
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.boton-idioma{
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #a8a8a8;
+    background-color: white;
+    color: #333;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.boton-idioma-activo{
+    background-color: indigo;
+    color: white;
+    border-color: indigo;
+}

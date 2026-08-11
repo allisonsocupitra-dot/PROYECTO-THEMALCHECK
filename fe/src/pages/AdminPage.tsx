@@ -1,16 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/authContext';
+import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { mockUsers } from '../api/mockUsers';
 import { mockRegistros } from '../api/mockRegistros';
-import logo from '../assets/img/logo.png';
+import NavLateral from '../components/NavLateral';
 import '../styles/styles.css';
 import '../styles/dashboard.css';
 import '../styles/admin.css';
 
-const AdminPage: React.FC = () => {
-  const { usuario, logout } = useAuth();
-  const navigate = useNavigate();
+const AdminReportsPage: React.FC = () => {
+  const { usuario } = useAuth();
+  const { t } = useLanguage();
 
   const [busqueda, setBusqueda] = useState('');
   const [usuarioSeleccionadoId, setUsuarioSeleccionadoId] = useState<string | null>(null);
@@ -21,7 +21,9 @@ const AdminPage: React.FC = () => {
     const termino = busqueda.trim().toLowerCase();
     if (!termino) return tecnicos;
     return tecnicos.filter(
-      (t) => t.nombre.toLowerCase().includes(termino) || t.correo.toLowerCase().includes(termino)
+      (t2) =>
+        `${t2.nombre} ${t2.apellido}`.toLowerCase().includes(termino) ||
+        t2.correo.toLowerCase().includes(termino)
     );
   }, [busqueda, tecnicos]);
 
@@ -30,33 +32,18 @@ const AdminPage: React.FC = () => {
     return mockRegistros.filter((r) => r.usuarioId === usuarioSeleccionadoId);
   }, [usuarioSeleccionadoId]);
 
-  const usuarioSeleccionado = tecnicos.find((t) => t.id === usuarioSeleccionadoId);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  const usuarioSeleccionado = tecnicos.find((t2) => t2.id === usuarioSeleccionadoId);
 
   return (
     <>
       <div className="explorador">
-        <nav className="nav-lateral">
-          <div>
-            <img src={logo} alt="Logo ThemalCheck" className="logo" />
-          </div>
-
-          <i className="fa-solid fa-users" title="Usuarios"></i>
-
-          <div className="logout">
-            <button className="boton-logout" type="button" onClick={handleLogout} title="Cerrar sesión">
-              <i className="fa-solid fa-arrow-right-from-bracket"></i>
-            </button>
-          </div>
-        </nav>
+        <NavLateral />
 
         <div className="explorador-contenido">
-          <header className="explorador-header">
-            <h3>Panel de administración {usuario ? `— ${usuario.nombre}` : ''}</h3>
+          <header className="explorador-header explorador-header-simple">
+            <h3>
+              {t('admin.titulo')} {usuario ? `— ${usuario.nombre}` : ''}
+            </h3>
           </header>
 
           <section className="panel-admin">
@@ -65,7 +52,7 @@ const AdminPage: React.FC = () => {
                 <i className="fa-solid fa-magnifying-glass"></i>
                 <input
                   type="text"
-                  placeholder="Buscar técnico por nombre o correo"
+                  placeholder={t('admin.buscar.placeholder')}
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                 />
@@ -74,28 +61,28 @@ const AdminPage: React.FC = () => {
               <table className="tabla-usuarios">
                 <thead>
                   <tr>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Registros</th>
+                    <th>{t('admin.tabla.nombre')}</th>
+                    <th>{t('admin.tabla.correo')}</th>
+                    <th>{t('admin.tabla.registros')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tecnicosFiltrados.map((t) => (
+                  {tecnicosFiltrados.map((t2) => (
                     <tr
-                      key={t.id}
-                      className={t.id === usuarioSeleccionadoId ? 'fila-seleccionada' : ''}
-                      onClick={() => setUsuarioSeleccionadoId(t.id)}
+                      key={t2.id}
+                      className={t2.id === usuarioSeleccionadoId ? 'fila-seleccionada' : ''}
+                      onClick={() => setUsuarioSeleccionadoId(t2.id)}
                     >
-                      <td>{t.nombre}</td>
-                      <td>{t.correo}</td>
-                      <td>{mockRegistros.filter((r) => r.usuarioId === t.id).length}</td>
+                      <td>{t2.nombre} {t2.apellido}</td>
+                      <td>{t2.correo}</td>
+                      <td>{mockRegistros.filter((r) => r.usuarioId === t2.id).length}</td>
                     </tr>
                   ))}
 
                   {tecnicosFiltrados.length === 0 && (
                     <tr>
                       <td colSpan={3} className="texto-suave">
-                        No se encontraron técnicos con ese criterio
+                        {t('admin.tabla.vacio')}
                       </td>
                     </tr>
                   )}
@@ -106,19 +93,19 @@ const AdminPage: React.FC = () => {
             <div className="panel-registros">
               <h4>
                 {usuarioSeleccionado
-                  ? `Registros de ${usuarioSeleccionado.nombre}`
-                  : 'Selecciona un técnico para ver sus registros'}
+                  ? `${t('admin.registros.titulo')} ${usuarioSeleccionado.nombre} ${usuarioSeleccionado.apellido}`
+                  : t('admin.registros.seleccion')}
               </h4>
 
               {usuarioSeleccionado && (
                 <table className="tabla-registros">
                   <thead>
                     <tr>
-                      <th>Imagen</th>
-                      <th>Fecha</th>
-                      <th>Temp. máx</th>
-                      <th>Temp. mín</th>
-                      <th>Estado</th>
+                      <th>{t('admin.registros.tabla.imagen')}</th>
+                      <th>{t('admin.registros.tabla.fecha')}</th>
+                      <th>{t('admin.registros.tabla.tempMax')}</th>
+                      <th>{t('admin.registros.tabla.tempMin')}</th>
+                      <th>{t('admin.registros.tabla.estado')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -130,7 +117,7 @@ const AdminPage: React.FC = () => {
                         <td>{r.temperaturaMin}°C</td>
                         <td>
                           <span className={`estado estado-${r.estado.toLowerCase()}`}>
-                            {r.estado}
+                            {t(`estado.${r.estado.toLowerCase()}`)}
                           </span>
                         </td>
                       </tr>
@@ -139,7 +126,7 @@ const AdminPage: React.FC = () => {
                     {registrosDelSeleccionado.length === 0 && (
                       <tr>
                         <td colSpan={5} className="texto-suave">
-                          Este técnico no tiene registros aún
+                          {t('admin.registros.vacio')}
                         </td>
                       </tr>
                     )}
@@ -151,11 +138,9 @@ const AdminPage: React.FC = () => {
         </div>
       </div>
 
-      <footer className="footer">
-        ThemalCheck — Análisis Termográfico | Proyecto SENA — Análisis y Desarrollo de Software | 2026
-      </footer>
+      <footer className="footer">{t('footer.texto')}</footer>
     </>
   );
 };
 
-export default AdminPage;
+export default AdminReportsPage;

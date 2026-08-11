@@ -1,41 +1,57 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/authContext';
+import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { GaleriaProvider } from './context/GaleriaContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import AdminPage from './pages/AdminPage';
+import VisorPage from './pages/VisorPage';
+import AdminReportsPage from './pages/AdminPage';
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+      <LanguageProvider>
+        <GaleriaProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
 
-          {/* Panel del técnico: solo accesible con rol "tecnico" */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute rolesPermitidos={['tecnico']}>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+              {/* Explorador y Visor: compartidos por técnicos y administradores */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute rolesPermitidos={['tecnico', 'admin']}>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Panel del administrador: solo accesible con rol "admin" */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute rolesPermitidos={['admin']}>
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+              <Route
+                path="/visor"
+                element={
+                  <ProtectedRoute rolesPermitidos={['tecnico', 'admin']}>
+                    <VisorPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Solo administradores: revisión de reportes de técnicos */}
+              <Route
+                path="/admin/reportes"
+                element={
+                  <ProtectedRoute rolesPermitidos={['admin']}>
+                    <AdminReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </GaleriaProvider>
+      </LanguageProvider>
     </AuthProvider>
   );
 };

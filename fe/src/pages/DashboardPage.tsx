@@ -1,92 +1,153 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/authContext';
-import ImageUploader, { type ImagenCargada } from '../components/ImageUploader';
-import logo from '../assets/img/logo.png';
+import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useGaleria } from '../context/GaleriaContext';
+import NavLateral from '../components/NavLateral';
+import ImageUploader from '../components/ImageUploader';
 import '../styles/styles.css';
 import '../styles/dashboard.css';
 
 const DashboardPage: React.FC = () => {
-  const { usuario, logout } = useAuth();
+  const { usuario } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
-  const [imagenes, setImagenes] = useState<ImagenCargada[]>([]);
+  const { carpetas, carpetaActivaId, crearCarpeta, seleccionarCarpeta, agregarImagenes, seleccionarImagen } =
+    useGaleria();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const [mostrarFormCarpeta, setMostrarFormCarpeta] = useState(false);
+  const [nombreCarpeta, setNombreCarpeta] = useState('');
+
+  const carpetaActiva = useMemo(
+    () => carpetas.find((c) => c.id === carpetaActivaId) ?? carpetas[0],
+    [carpetas, carpetaActivaId]
+  );
+
+  const handleCrearCarpeta = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nombreCarpeta.trim()) return;
+    crearCarpeta(nombreCarpeta);
+    setNombreCarpeta('');
+    setMostrarFormCarpeta(false);
   };
 
-  const handleImagenesCargadas = (nuevas: ImagenCargada[]) => {
-    setImagenes((prev) => [...nuevas, ...prev]);
+  const handleArchivos = (archivos: File[]) => {
+    agregarImagenes(carpetaActiva.id, archivos);
+  };
+
+  const handleAbrirImagen = (imagenId: string) => {
+    seleccionarImagen(imagenId);
+    navigate('/visor');
   };
 
   return (
     <>
       <div className="explorador">
-        <nav className="nav-lateral">
-          <div>
-            <img src={logo} alt="Logo ThemalCheck" className="logo" />
-          </div>
-
-          <Link to="/dashboard">
-            <i className="fa-regular fa-folder"></i>
-          </Link>
-
-          <Link to="/visor">
-            <i className="fa-regular fa-file"></i>
-          </Link>
-
-          <Link to="/configuracion">
-            <i className="fa-solid fa-gear"></i>
-          </Link>
-
-          <div className="logout">
-            {/* Antes era un <Link> a "/"; ahora cierra la sesión de verdad antes de redirigir */}
-            <button className="boton-logout" type="button" onClick={handleLogout} title="Cerrar sesión">
-              <i className="fa-solid fa-arrow-right-from-bracket"></i>
-            </button>
-          </div>
-        </nav>
+        <NavLateral />
 
         <div className="explorador-contenido">
           <header className="explorador-header">
-            <h3>Explorador de imágenes {usuario ? `— ${usuario.nombre}` : ''}</h3>
+            <h3>{t('nav.explorador')} {usuario ? `— ${usuario.nombre}` : ''}</h3>
 
-            <button className="boton-exportar" type="button" title="Exportar reporte por lotes">
-              <i className="fa-solid fa-file-export"></i> Exportar reporte
+            <button className="boton-exportar" type="button" title={t('dashboard.exportar')}>
+              <i className="fa-solid fa-file-export"></i> {t('dashboard.exportar')}
             </button>
 
-            <button className="boton-edicion" type="button" title="Edición por lotes">
-              <i className="fa-solid fa-gear"></i> Edición por lotes
+            <button className="boton-edicion" type="button" title={t('dashboard.edicion')}>
+              <i className="fa-solid fa-gear"></i> {t('dashboard.edicion')}
             </button>
 
-            <span className="texto-suave">({imagenes.length} elementos cargados)</span>
+            <span className="texto-suave">
+              ({carpetaActiva.imagenes.length} {t('carpetas.items')})
+            </span>
 
             <button className="boton-seleccion" type="button">
-              Seleccionar todo
+              {t('dashboard.seleccionarTodo')}
             </button>
           </header>
 
-          <section className="seccion-carga">
-            <ImageUploader onImagenesCargadas={handleImagenesCargadas} />
-          </section>
+          <section className="panel-carpetas">
+            <aside className="lista-carpetas">
+              {mostrarFormCarpeta ? (
+                <form className="form-nueva-carpeta" onSubmit={handleCrearCarpeta}>
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder={t('carpetas.nombrePlaceholder')}
+                    value={nombreCarpeta}
+                    onChange={(e) => setNombreCarpeta(e.target.value)}
+                  />
+                  <div className="form-nueva-carpeta-botones">
+                    <button type="submit" className="btn-carpeta-confirmar">
+                      {t('carpetas.crear')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-carpeta-cancelar"
+                      onClick={() => {
+                        setMostrarFormCarpeta(false);
+                        setNombreCarpeta('');
+                      }}
+                    >
+                      {t('carpetas.cancelar')}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button className="btn-nueva-carpeta" type="button" onClick={() => setMostrarFormCarpeta(true)}>
+                  <i className="fa-solid fa-folder-plus"></i> {t('carpetas.nueva')}
+                </button>
+              )}
 
-          {imagenes.length > 0 && (
-            <section className="galeria-imagenes">
-              {imagenes.map((img) => (
-                <div className="tarjeta-imagen" key={img.id}>
-                  <img src={img.urlPrevia} alt={img.archivo.name} />
-                  <p className="nombre-imagen">{img.archivo.name}</p>
-                </div>
-              ))}
-            </section>
-          )}
+              <ul className="lista-carpetas-items">
+                {carpetas.map((c) => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      className={c.id === carpetaActivaId ? 'item-carpeta item-carpeta-activa' : 'item-carpeta'}
+                      onClick={() => seleccionarCarpeta(c.id)}
+                    >
+                      <i className="fa-solid fa-folder"></i>
+                      <span>{c.nombre}</span>
+                      <span className="item-carpeta-contador">{c.imagenes.length}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+
+            <div className="contenido-carpeta">
+              <div className="breadcrumb-carpeta">
+                <i className="fa-solid fa-folder-open"></i>
+                <span>{carpetaActiva.nombre}</span>
+                <span className="texto-suave">
+                  — {carpetaActiva.imagenes.length} {t('carpetas.items')}
+                </span>
+              </div>
+
+              <ImageUploader onArchivosSeleccionados={handleArchivos} />
+
+              {carpetaActiva.imagenes.length > 0 && (
+                <section className="miniaturas-grid">
+                  {carpetaActiva.imagenes.map((img) => (
+                    <button
+                      className="miniatura"
+                      type="button"
+                      key={img.id}
+                      onClick={() => handleAbrirImagen(img.id)}
+                    >
+                      <img src={img.urlPrevia} alt={img.archivo.name} />
+                      <p className="nombre-imagen">{img.archivo.name}</p>
+                    </button>
+                  ))}
+                </section>
+              )}
+            </div>
+          </section>
         </div>
       </div>
 
-      <footer className="footer">
-        ThemalCheck — Análisis Termográfico | Proyecto SENA — Análisis y Desarrollo de Software | 2026
-      </footer>
+      <footer className="footer">{t('footer.texto')}</footer>
     </>
   );
 };

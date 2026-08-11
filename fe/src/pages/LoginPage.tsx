@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/authContext';
+import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import logo from '../assets/img/logo.png';
 import '../styles/styles.css';
 import '../styles/login.css';
@@ -8,6 +9,7 @@ import '../styles/login.css';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useLanguage();
 
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
@@ -24,28 +26,25 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    // El AuthContext ya sabe qué rol tiene el usuario; lo volvemos a leer
-    // desde sessionStorage para decidir a qué panel enviarlo.
-    const guardado = sessionStorage.getItem('themalcheck_usuario');
-    const usuario = guardado ? JSON.parse(guardado) : null;
-
-    navigate(usuario?.rol === 'admin' ? '/admin' : '/dashboard');
+    // Técnicos y administradores comparten el mismo explorador;
+    // la diferencia de permisos se refleja en la barra lateral, no en la ruta de entrada.
+    navigate('/dashboard');
   };
 
   return (
     <>
       <header className="login-header">
         <img className="logo" src={logo} alt="ThemalCheck Logo" />
-        <div className='titleThemalCheck'>
+        <div>
           <h2>ThemalCheck</h2>
-          <p>Análisis de imágenes termográficas</p>
+          <p>{t('login.subtitulo')}</p>
         </div>
       </header>
 
       <div className="login">
-        <div className="login-container titleThemalCheck">
+        <div className="login-container">
           <form onSubmit={handleSubmit}>
-            <h2>Iniciar Sesión</h2>
+            <h2>{t('login.titulo')}</h2>
 
             {error && <p className="mensaje-error">{error}</p>}
 
@@ -53,7 +52,7 @@ const LoginPage: React.FC = () => {
               <i className="uil uil-envelope"></i>
               <input
                 type="email"
-                placeholder="Ingrese el correo electrónico"
+                placeholder={t('login.correo.placeholder')}
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}
                 required
@@ -64,25 +63,25 @@ const LoginPage: React.FC = () => {
               <i className="uil uil-lock"></i>
               <input
                 type="password"
-                placeholder="Ingrese la contraseña"
+                placeholder={t('login.contrasena.placeholder')}
                 value={contraseña}
                 onChange={(e) => setContraseña(e.target.value)}
                 required
               />
             </div>
 
-            <button type="submit">Iniciar sesión</button>
+            <button type="submit">{t('login.boton')}</button>
 
             <div className="enlace-registro">
-              <p>¿No tienes una cuenta? <Link to="/register">Regístrate</Link></p>
+              <p>
+                {t('login.sinCuenta')} <Link to="/register">{t('login.registrate')}</Link>
+              </p>
             </div>
           </form>
         </div>
       </div>
 
-      <footer className="footer">
-        ThemalCheck — Análisis Termográfico | Proyecto SENA — Análisis y Desarrollo de Software | 2026
-      </footer>
+      <footer className="footer">{t('footer.texto')}</footer>
     </>
   );
 };

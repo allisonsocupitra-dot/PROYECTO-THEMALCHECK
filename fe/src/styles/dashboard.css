@@ -29,6 +29,28 @@
     color: indigo;
 }
 
+.nav-lateral a.nav-activo i{
+    color: indigo;
+}
+
+/* Ajustes ahora es un <button> (abre modal) en vez de un <Link> */
+.boton-nav-lateral{
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.boton-nav-lateral i{
+    font-size: 28px;
+    color: #333;
+}
+
+.boton-nav-lateral:hover i{
+    font-size: 30px;
+    color: indigo;
+}
+
 .logo{
     width: 45px;
     height: 45px;
@@ -45,7 +67,6 @@
     grid-row: 18;
 }
 
-/* El logout ahora es un <button> (antes era <a>) para poder cerrar sesión de verdad antes de redirigir */
 .boton-logout{
     background: transparent;
     border: none;
@@ -69,6 +90,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    min-width: 0;
 }
 
 .explorador-header{
@@ -80,6 +102,11 @@
     background-color: white;
     border-bottom: 1px solid #a8a8a8;
     align-items: center;
+}
+
+/* Usada en Visor / Reportes: páginas que solo necesitan un título, sin la grilla de botones */
+.explorador-header-simple{
+    display: flex;
 }
 
 .explorador-header h3{
@@ -122,25 +149,161 @@
     background-color: #f0f0f0;
 }
 
-.seccion-carga{
-    padding: 20px;
+/* ---- Carpetas del explorador ---- */
+
+.panel-carpetas{
+    display: flex;
+    flex: 1;
+    min-height: 0;
 }
 
-.galeria-imagenes{
+.lista-carpetas{
+    width: 220px;
+    flex-shrink: 0;
+    background-color: #fafafa;
+    border-right: 1px solid #e0e0e0;
+    padding: 15px 10px;
+}
+
+.btn-nueva-carpeta{
+    width: 100%;
+    padding: 10px;
+    border: 1px dashed #a8a8a8;
+    border-radius: 8px;
+    background: white;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+.btn-nueva-carpeta:hover{
+    border-color: indigo;
+    color: indigo;
+}
+
+.form-nueva-carpeta{
+    margin-bottom: 15px;
+}
+
+.form-nueva-carpeta input{
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #a8a8a8;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.form-nueva-carpeta-botones{
+    display: flex;
+    gap: 8px;
+}
+
+.btn-carpeta-confirmar,
+.btn-carpeta-cancelar{
+    flex: 1;
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.btn-carpeta-confirmar{
+    background-color: indigo;
+    color: white;
+}
+
+.btn-carpeta-cancelar{
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.lista-carpetas-items{
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.item-carpeta{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    text-align: left;
+}
+
+.item-carpeta i{
+    color: #b8860b;
+}
+
+.item-carpeta:hover{
+    background-color: #eee;
+}
+
+.item-carpeta-activa{
+    background-color: #ece7fb;
+    color: indigo;
+    font-weight: bold;
+}
+
+.item-carpeta-contador{
+    margin-left: auto;
+    font-size: 11px;
+    color: #888;
+}
+
+.contenido-carpeta{
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+}
+
+.breadcrumb-carpeta{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 20px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.breadcrumb-carpeta i{
+    color: #b8860b;
+}
+
+.miniaturas-grid{
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 15px;
     padding: 0 20px 20px;
 }
 
-.tarjeta-imagen{
+.miniatura{
     background-color: white;
+    border: none;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 4px;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
 }
 
-.tarjeta-imagen img{
+.miniatura:hover{
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 8px;
+}
+
+.miniatura img{
     width: 100%;
     height: 120px;
     object-fit: cover;
@@ -154,4 +317,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.mensaje-vacio{
+    padding: 60px 20px;
+    text-align: center;
 }

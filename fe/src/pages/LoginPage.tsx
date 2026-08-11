@@ -35,14 +35,14 @@ const LoginPage: React.FC = () => {
     <>
       <header className="login-header">
         <img className="logo" src={logo} alt="ThemalCheck Logo" />
-        <div>
-          <h2>ThemalCheck</h2>
+        <div className="titleThemalCheck">
+          <h2 className='margin-title'>ThemalCheck</h2>
           <p>{t('login.subtitulo')}</p>
         </div>
       </header>
 
       <div className="login">
-        <div className="login-container">
+        <div className="login-container titleThemalCheck">
           <form onSubmit={handleSubmit}>
             <h2>{t('login.titulo')}</h2>
 

@@ -3,15 +3,18 @@ import type { ReactNode } from 'react';
 import { mockUsers, agregarUsuario } from '../api/mockUsers';
 import type { Usuario, Rol } from '../types/auth';
 
+type CodigoError = 'credenciales' | 'rol' | 'correoExistente';
+
 interface ResultadoAuth {
   ok: boolean;
-  mensaje?: string;
+  codigo?: CodigoError;
+  rolReal?: Rol;
 }
 
 interface AuthContextType {
   usuario: Usuario | null;
   estaAutenticado: boolean;
-  login: (correo: string, contraseña: string) => ResultadoAuth;
+  login: (correo: string, contraseña: string, rol: Rol) => ResultadoAuth;
   registrar: (nombre: string, apellido: string, correo: string, contraseña: string, rol: Rol) => ResultadoAuth;
   logout: () => void;
 }
@@ -31,13 +34,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     sessionStorage.setItem(CLAVE_STORAGE, JSON.stringify(u));
   };
 
-  const login = (correo: string, contraseña: string): ResultadoAuth => {
+  // El login ahora exige que el rol elegido coincida con el rol real de la cuenta.
+  // Si el correo y la contraseña son correctos pero el rol no coincide, se rechaza el ingreso.
+  const login = (correo: string, contraseña: string, rol: Rol): ResultadoAuth => {
     const encontrado = mockUsers.find(
       (u) => u.correo.toLowerCase() === correo.toLowerCase() && u.contraseña === contraseña
     );
 
     if (!encontrado) {
-      return { ok: false, mensaje: 'Correo o contraseña incorrectos' };
+      return { ok: false, codigo: 'credenciales' };
+    }
+
+    if (encontrado.rol !== rol) {
+      return { ok: false, codigo: 'rol', rolReal: encontrado.rol };
     }
 
     guardarSesion({
@@ -61,7 +70,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const yaExiste = mockUsers.some((u) => u.correo.toLowerCase() === correo.toLowerCase());
 
     if (yaExiste) {
-      return { ok: false, mensaje: 'Ya existe una cuenta con ese correo' };
+      return { ok: false, codigo: 'correoExistente' };
     }
 
     agregarUsuario(nombre, apellido, correo, contraseña, rol);

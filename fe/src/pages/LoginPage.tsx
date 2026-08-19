@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import type { Rol } from '../types/auth';
 import logo from '../assets/img/logo.png';
 import '../styles/styles.css';
 import '../styles/login.css';
@@ -11,6 +12,7 @@ const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const { t } = useLanguage();
 
+  const [rol, setRol] = useState<Rol>('tecnico');
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [error, setError] = useState('');
@@ -19,15 +21,18 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    const resultado = login(correo, contraseña);
+    const resultado = login(correo, contraseña, rol);
 
     if (!resultado.ok) {
-      setError(resultado.mensaje ?? 'No se pudo iniciar sesión');
+      if (resultado.codigo === 'rol' && resultado.rolReal) {
+        const rolReal = resultado.rolReal === 'admin' ? t('register.rol.admin') : t('register.rol.tecnico');
+        setError(`${t('login.errorRol')} ${rolReal}`);
+      } else {
+        setError(t('login.errorCredenciales'));
+      }
       return;
     }
 
-    // Técnicos y administradores comparten el mismo explorador;
-    // la diferencia de permisos se refleja en la barra lateral, no en la ruta de entrada.
     navigate('/dashboard');
   };
 
@@ -47,6 +52,23 @@ const LoginPage: React.FC = () => {
             <h2>{t('login.titulo')}</h2>
 
             {error && <p className="mensaje-error">{error}</p>}
+
+            <div className="selector-rol-inline">
+              <button
+                type="button"
+                className={rol === 'tecnico' ? 'boton-rol-inline boton-rol-inline-activo' : 'boton-rol-inline'}
+                onClick={() => setRol('tecnico')}
+              >
+                <i className="fa-solid fa-screwdriver-wrench"></i> {t('register.rol.tecnico')}
+              </button>
+              <button
+                type="button"
+                className={rol === 'admin' ? 'boton-rol-inline boton-rol-inline-activo' : 'boton-rol-inline'}
+                onClick={() => setRol('admin')}
+              >
+                <i className="fa-solid fa-user-shield"></i> {t('register.rol.admin')}
+              </button>
+            </div>
 
             <div className="input-box">
               <i className="uil uil-envelope"></i>

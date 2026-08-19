@@ -32,7 +32,7 @@ const RegisterPage: React.FC = () => {
     const resultado = registrar(nombre, apellido, correo, contraseña, rol);
 
     if (!resultado.ok) {
-      setError(resultado.mensaje ? t('register.errorExiste') : 'No se pudo completar el registro');
+      setError(t('register.errorExiste'));
       return;
     }
 

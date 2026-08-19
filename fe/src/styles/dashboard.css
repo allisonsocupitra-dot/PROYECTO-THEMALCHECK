@@ -33,7 +33,6 @@
     color: indigo;
 }
 
-/* Ajustes ahora es un <button> (abre modal) en vez de un <Link> */
 .boton-nav-lateral{
     background: transparent;
     border: none;

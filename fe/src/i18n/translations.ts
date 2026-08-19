@@ -18,17 +18,27 @@ export const traducciones: Record<string, Entrada> = {
   'login.boton': { es: 'Iniciar sesión', en: 'Sign in' },
   'login.sinCuenta': { es: '¿No tienes una cuenta?', en: "Don't have an account?" },
   'login.registrate': { es: 'Regístrate', en: 'Sign up' },
+  'login.errorCredenciales': { es: 'Correo o contraseña incorrectos', en: 'Incorrect email or password' },
+  'login.errorRol': { es: 'Esta cuenta está registrada como', en: 'This account is registered as' },
 
-  // Registro: elegir rol
+  // Registro — paso 1: elegir rol
   'register.paso.rolTitulo': { es: '¿Cómo vas a usar ThemalCheck?', en: 'How will you use ThemalCheck?' },
   'register.paso.rolDescripcion': {
     es: 'Elige un rol para continuar con el registro.',
     en: 'Choose a role to continue registering.',
   },
   'register.rol.tecnico': { es: 'Técnico', en: 'Technician' },
+  'register.rol.tecnico.desc': {
+    es: 'Carga y analiza tus propias imágenes termográficas.',
+    en: 'Upload and analyze your own thermal images.',
+  },
   'register.rol.admin': { es: 'Administrador', en: 'Administrator' },
+  'register.rol.admin.desc': {
+    es: 'Administra técnicos y revisa sus reportes.',
+    en: 'Manage technicians and review their reports.',
+  },
 
-  // Registro: formulario
+  // Registro — paso 2: formulario
   'register.titulo': { es: 'Registro', en: 'Register' },
   'register.registrandoComo': { es: 'Registrando cuenta de', en: 'Registering account as' },
   'register.cambiarRol': { es: '← Cambiar rol', en: '← Change role' },
@@ -57,6 +67,13 @@ export const traducciones: Record<string, Entrada> = {
   'dashboard.exportar': { es: 'Exportar reporte', en: 'Export report' },
   'dashboard.edicion': { es: 'Edición por lotes', en: 'Batch editing' },
   'dashboard.seleccionarTodo': { es: 'Seleccionar todo', en: 'Select all' },
+
+  // Carga de imágenes
+  'uploader.arrastra': { es: 'Arrastra tus imágenes termográficas aquí', en: 'Drag your thermal images here' },
+  'uploader.click': {
+    es: 'o haz clic para seleccionar archivos (JPG, PNG, TIFF)',
+    en: 'or click to select files (JPG, PNG, TIFF)',
+  },
 
   // Visor
   'visor.vacio': {

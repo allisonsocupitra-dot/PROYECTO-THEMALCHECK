@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useGaleria } from '../context/GaleriaContext';
 import NavLateral from '../components/NavLateral';
+import { formatearTemperatura } from '../utils/temperaturas';
 import '../styles/styles.css';
 import '../styles/dashboard.css';
 import '../styles/visor.css';
@@ -75,9 +76,9 @@ const VisorPage: React.FC = () => {
                     <img src={imagenActiva.urlPrevia} alt={imagenActiva.archivo.name} />
 
                     <div className="barra-temperatura">
-                      <span className="temp-max">{imagenActiva.temperaturaMax}°C</span>
+                      <span className="temp-max">{formatearTemperatura(imagenActiva.temperaturaMax)}°C</span>
                       <div className="gradiente-temperatura"></div>
-                      <span className="temp-min">{imagenActiva.temperaturaMin}°C</span>
+                      <span className="temp-min">{formatearTemperatura(imagenActiva.temperaturaMin)}°C</span>
                     </div>
                   </div>
                 ) : (
@@ -93,11 +94,11 @@ const VisorPage: React.FC = () => {
                   <div className="info-imagen">
                     <div>
                       <span className="texto-suave">{t('visor.tempMax')}</span>
-                      <strong>{imagenActiva.temperaturaMax}°C</strong>
+                      <strong>{formatearTemperatura(imagenActiva.temperaturaMax)}°C</strong>
                     </div>
                     <div>
                       <span className="texto-suave">{t('visor.tempMin')}</span>
-                      <strong>{imagenActiva.temperaturaMin}°C</strong>
+                      <strong>{formatearTemperatura(imagenActiva.temperaturaMin)}°C</strong>
                     </div>
                   </div>
 

@@ -1,25 +1,26 @@
 .zona-carga{
-    border: 2px dashed #a8a8a8;
-    border-radius: 10px;
-    margin: 20px;
-    padding: 25px;
-    height: 100px;
-    width: 100px;
-    text-align: center;
-    cursor: pointer;
-    background-color: white;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
+    display: grid;
+    place-items: center;
+    border: 2px dashed #b9acc5;
+    border-radius: 14px;
+    margin: 28px clamp(24px, 4vw, 56px);
+    padding: 20px;
+    height: 128px;
+    width: 128px;
 }
 
 .zona-carga:hover,
 .zona-carga-activa{
-    border-color: indigo;
-    background-color: #f5f3ff;
+    border-color: var(--primary-color);
+    background-color: var(--primary-soft);
+    box-shadow: var(--shadow-soft);
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    transform: translateY(-3px);
 }
 
 .icono-carga{
-    font-size: 40px;
-    color: indigo;
+    font-size: 42px;
+    color: var(--primary-color);
     margin-bottom: 10px;
     display: block;
 }

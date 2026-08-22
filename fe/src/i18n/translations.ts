@@ -21,6 +21,17 @@ export const traducciones: Record<string, Entrada> = {
   'login.errorCredenciales': { es: 'Correo o contraseña incorrectos', en: 'Incorrect email or password' },
   'login.errorRol': { es: 'Esta cuenta está registrada como', en: 'This account is registered as' },
 
+  // Landing
+  'landing.etiqueta': { es: 'Inteligencia térmica para decisiones claras', en: 'Thermal intelligence for clear decisions' },
+  'landing.descripcion': {
+    es: 'Servicio especializado de análisis de imágenes termográficas para detectar lo que el ojo no puede ver.',
+    en: 'Specialized thermographic image analysis to detect what the eye cannot see.',
+  },
+  'landing.comenzar': { es: 'Comenzar', en: 'Get started' },
+  'landing.iniciar': { es: 'Iniciar sesión', en: 'Sign in' },
+  'landing.pie': { es: 'Análisis termográfico preciso', en: 'Precise thermographic analysis' },
+  'landing.estado': { es: 'Sistema operativo', en: 'System online' },
+
   // Registro — paso 1: elegir rol
   'register.paso.rolTitulo': { es: '¿Cómo vas a usar ThemalCheck?', en: 'How will you use ThemalCheck?' },
   'register.paso.rolDescripcion': {

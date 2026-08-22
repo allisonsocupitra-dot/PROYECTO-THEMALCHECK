@@ -3,14 +3,15 @@
     grid-template-columns: 1.2fr 1fr;
     gap: 20px;
     padding: 20px;
+    animation: slide-up .5s ease both;
 }
 
 .panel-busqueda,
 .panel-registros{
-    background-color: white;
+    background-color: var(--surface);
     border-radius: 10px;
     padding: 20px;
-    box-shadow: rgba(0, 0, 0, 0.08) 0px 1px 4px;
+    box-shadow: var(--shadow-soft);
 }
 
 .input-box-admin{
@@ -30,7 +31,7 @@
 .tabla-registros th{
     text-align: left;
     padding: 10px;
-    border-bottom: 2px solid #a8a8a8;
+    border-bottom: 2px solid var(--border-soft);
     color: #333;
 }
 
@@ -45,11 +46,11 @@
 }
 
 .tabla-usuarios tbody tr:hover{
-    background-color: #f5f3ff;
+    background-color: var(--primary-soft);
 }
 
 .fila-seleccionada{
-    background-color: #ece7fb;
+    background-color: var(--primary-soft);
 }
 
 .panel-registros h4{

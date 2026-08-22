@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Carpeta, ImagenCargada } from '../types/galeria';
+import { normalizarRangoTermico } from '../utils/temperaturas';
 
 interface GaleriaContextType {
   carpetas: Carpeta[];
@@ -14,11 +15,17 @@ interface GaleriaContextType {
 
 const GaleriaContext = createContext<GaleriaContextType | undefined>(undefined);
 
-// Mientras no exista backend, simulamos temperaturas máx/mín para cada imagen cargada
+// El proyecto no tiene backend para leer metadatos FLIR aún, por lo que se usa
+// un valor de referencia equivalente al rango térmico de la escala original.
 const generarTemperaturas = () => {
-  const min = Number((18 + Math.random() * 8).toFixed(1));
-  const max = Number((45 + Math.random() * 60).toFixed(1));
-  return { min, max };
+  const temperaturaMinOriginal = 12.2;
+  const temperaturaMaxOriginal = 69.3;
+
+  return normalizarRangoTermico({
+    temperaturaMin: temperaturaMinOriginal,
+    temperaturaMax: temperaturaMaxOriginal,
+    unidadOrigen: 'F',
+  });
 };
 
 const CARPETA_INICIAL: Carpeta = { id: 'general', nombre: 'General', imagenes: [] };
@@ -46,14 +53,15 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const agregarImagenes = (carpetaId: string, archivos: File[]) => {
     const nuevasImagenes: ImagenCargada[] = archivos.map((archivo) => {
-      const { min, max } = generarTemperaturas();
+      const { temperaturaMin, temperaturaMax } = generarTemperaturas();
       return {
         id: `${archivo.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         archivo,
         urlPrevia: URL.createObjectURL(archivo),
         fecha: new Date().toISOString(),
-        temperaturaMin: min,
-        temperaturaMax: max,
+        temperaturaMin,
+        temperaturaMax,
+        unidadOrigen: 'C',
       };
     });
 

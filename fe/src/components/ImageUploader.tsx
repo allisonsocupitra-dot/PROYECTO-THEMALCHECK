@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import { useLanguage } from '../context/LanguageContext';
 import '../styles/uploader.css';
 
 interface ImageUploaderProps {
@@ -9,7 +8,6 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({ onArchivosSeleccionados }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [arrastrando, setArrastrando] = useState(false);
-  const { t } = useLanguage();
 
   const procesarArchivos = (archivos: FileList | null) => {
     if (!archivos || archivos.length === 0) return;

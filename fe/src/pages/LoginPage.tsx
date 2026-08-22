@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Rol } from '../types/auth';
-import logo from '../assets/img/logo.png';
+import logo from '../assets/img/Themalcheck-logo.svg';
 import '../styles/styles.css';
 import '../styles/login.css';
 
@@ -38,16 +38,16 @@ const LoginPage: React.FC = () => {
 
   return (
     <>
-      <header className="login-header">
-        <img className="logo" src={logo} alt="ThemalCheck Logo" />
-        <div className="titleThemalCheck">
-          <h2 className='margin-title'>ThemalCheck</h2>
-          <p>{t('login.subtitulo')}</p>
-        </div>
+      <header className="auth-header">
+        <Link className="auth-brand" to="/" aria-label="ThemalCheck">
+          <img src={logo} alt="" />
+          <span>ThemalCheck</span>
+        </Link>
+        <p>{t('login.subtitulo')}</p>
       </header>
 
       <div className="login">
-        <div className="login-container titleThemalCheck">
+        <div className="login-container titleThemalCheck slide-up">
           <form onSubmit={handleSubmit}>
             <h2>{t('login.titulo')}</h2>
 
@@ -73,7 +73,8 @@ const LoginPage: React.FC = () => {
             <div className="input-box">
               <i className="uil uil-envelope"></i>
               <input
-                type="email"
+                type="text"
+                inputMode="email"
                 placeholder={t('login.correo.placeholder')}
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}

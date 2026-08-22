@@ -1,3 +1,5 @@
+export type UnidadTemperatura = 'C' | 'F';
+
 export interface ImagenCargada {
   id: string;
   archivo: File;
@@ -5,6 +7,7 @@ export interface ImagenCargada {
   fecha: string;
   temperaturaMax: number;
   temperaturaMin: number;
+  unidadOrigen?: UnidadTemperatura;
 }
 
 export interface Carpeta {

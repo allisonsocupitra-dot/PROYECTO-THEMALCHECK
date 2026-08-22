@@ -1,23 +1,31 @@
 .login{
     width: 100%;
-    min-height: 90vh;
+    min-height: calc(100svh - 110px);
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 0;
+    padding: 56px 24px;
+    background-color: #f5f2e9;
+    background-image: linear-gradient(rgba(23, 34, 45, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 34, 45, .045) 1px, transparent 1px);
+    background-size: 48px 48px;
 }
 
-.login-header{
+.auth-header{
     display: flex;
     align-items: center;
-    background-color: #dadada;
+    justify-content: space-between;
+    background-color: #f5f2e9;
     width: 100%;
-    height: 50px;
-    padding: 5px;
-    border-bottom: 1px solid #a8a8a8;
-    font-size: 12px;
+    min-height: 82px;
+    padding: 0 clamp(24px, 6vw, 96px);
+    border-bottom: 1px solid rgba(23, 34, 45, .15);
+    font-size: 13px;
+    box-sizing: border-box;
 }
 
+.auth-header > p { color: var(--text-muted); font-size: 12px; }
+.auth-brand { display: flex; align-items: center; gap: 12px; color: #17222d; font-size: 18px; font-weight: 800; letter-spacing: .5px; text-decoration: none; }
+.auth-brand img { width: 38px; height: 38px; object-fit: contain; mix-blend-mode: multiply; }
 
 .logo{
     width: auto;
@@ -28,17 +36,20 @@
 
 .login-container{
     position: relative;
-    background-color: white;
-    border-radius: 15px;
-    padding: 40px;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    background: rgba(255, 255, 255, .86);
+    border: 1px solid rgba(255, 255, 255, .9);
+    border-radius: 20px;
+    width: min(100%, 410px);
+    padding: 42px;
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px);
 }
 
 .login-container h2{
     margin-top: 20px;
     margin-bottom: 20px;
     text-align: center;
-    color: black;
+    color: var(--text-main);
     font-size: 27px;
 }
 
@@ -52,16 +63,33 @@
 .input-box input{
     width: 100%;
     height: 100%;
-    border: none;
+    border: 1px solid var(--border-soft);
     outline: none;
-    padding-left: 40px;
-    border-bottom: 2px solid #a8a8a8;
-    border-radius: 3px;
+    padding: 0 16px 0 42px;
+    border-radius: 10px;
+    background: var(--surface-muted);
+    color: var(--text-main);
+    caret-color: var(--primary-color);
     font-size: 14px;
 }
 
+.input-box input::placeholder{
+    color: var(--text-muted);
+    opacity: 1;
+}
+
+.input-box input:-webkit-autofill,
+.input-box input:-webkit-autofill:hover,
+.input-box input:-webkit-autofill:focus,
+.input-box input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--text-main);
+    -webkit-box-shadow: 0 0 0 1000px var(--surface-muted) inset;
+    box-shadow: 0 0 0 1000px var(--surface-muted) inset;
+    caret-color: var(--primary-color);
+    transition: background-color 9999s ease-out 0s;
+}
+
 .input-box input:focus{
-    border-bottom-color: indigo;
 }
 
 .input-box i{
@@ -69,13 +97,13 @@
     top: 50%;
     left: 10px;
     transform: translateY(-50%);
-    color: #a8a8a8;
+    color: var(--text-muted);
 }
 
 button{
     width: 100%;
     padding: 15px;
-    background-color: indigo;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 10px;
@@ -85,7 +113,9 @@ button{
 }
 
 button:hover{
-    background-color: rgb(172, 63, 0);
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(90, 63, 125, .22);
 }
 
 .enlace-registro{
@@ -119,27 +149,35 @@ button:hover{
     justify-content: center;
     gap: 6px;
     padding: 10px 8px;
-    border: 1px solid #a8a8a8;
+    border: 1px solid var(--border-soft);
     border-radius: 8px;
-    background-color: white;
-    color: #333;
+    background-color: var(--surface);
+    color: var(--text-main);
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
 }
 
 .boton-rol-inline:hover{
-    border-color: indigo;
-    color: indigo;
-    background-color: white;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: var(--primary-soft);
 }
 
 .boton-rol-inline-activo{
-    background-color: indigo;
+    background-color: var(--primary-color);
     color: white;
-    border-color: indigo;
+    border-color: var(--primary-color);
 }
 
 .boton-rol-inline-activo:hover{
     color: white;
+}
+
+.enlace-registro a { color: var(--primary-color); font-weight: 700; }
+
+@media (max-width: 600px) {
+    .auth-header { align-items: flex-start; flex-direction: column; gap: 8px; padding-top: 18px; padding-bottom: 18px; }
+    .login-container { padding: 30px 22px; }
+    .input-box { width: 100%; }
 }

@@ -1,0 +1,31 @@
+:root {
+  --primary-color: #17222d;
+  --primary-hover: #253c4c;
+  --primary-soft: #fff0e8;
+  --background: #f5f2e9;
+  --surface: #ffffff;
+  --surface-muted: #fbfaf4;
+  --text-main: #17222d;
+  --text-muted: #64727c;
+  --border-soft: #dddcd2;
+  --focus-ring: rgba(238, 113, 53, .2);
+  --shadow-soft: 0 12px 35px rgba(23, 34, 45, .08);
+  --shadow-hover: 0 16px 38px rgba(23, 34, 45, .14);
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fade-in { animation: fade-in .4s ease both; }
+.slide-up { animation: slide-up .5s cubic-bezier(.2, .7, .2, 1) both; }
+.route-view { min-height: 100%; animation: fade-in .3s ease both; }
+
+button, input, a { transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+input:focus { border-color: var(--primary-color) !important; box-shadow: 0 0 0 4px var(--focus-ring); }
+.loader { width: 18px; height: 18px; display: inline-block; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}

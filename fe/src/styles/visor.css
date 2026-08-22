@@ -2,6 +2,7 @@
     display: flex;
     flex: 1;
     min-height: 0;
+    animation: fade-in .45s ease both;
 }
 
 .visor-principal{
@@ -26,7 +27,7 @@
     padding: 6px 12px;
     border-radius: 6px 6px 0 0;
     border: none;
-    background-color: #eee;
+    background-color: var(--primary-soft);
     color: #555;
     font-size: 12px;
     cursor: pointer;
@@ -41,7 +42,7 @@
 }
 
 .pestana-activa{
-    background-color: indigo;
+    background-color: var(--primary-color);
     color: white;
 }
 
@@ -106,8 +107,8 @@
 .visor-panel{
     width: 260px;
     flex-shrink: 0;
-    background-color: white;
-    border-left: 1px solid #e0e0e0;
+    background-color: var(--surface);
+    border-left: 1px solid var(--border-soft);
     padding: 20px;
 }
 
@@ -123,7 +124,7 @@
     justify-content: space-between;
     margin: 20px 0;
     padding: 12px;
-    background-color: #f5f3ff;
+    background-color: var(--primary-soft);
     border-radius: 8px;
 }
 
@@ -150,8 +151,8 @@
     gap: 8px;
     padding: 10px;
     border-radius: 8px;
-    border: 1px solid #a8a8a8;
-    background-color: white;
+    border: 1px solid var(--border-soft);
+    background-color: var(--surface);
     color: #333;
     font-size: 12px;
     font-weight: normal;
@@ -160,9 +161,9 @@
 }
 
 .boton-exportar-visor:hover{
-    border-color: indigo;
-    color: indigo;
-    background-color: white;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: var(--surface);
 }
 
 .aviso-pendiente{

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import ModalAjustes from './ModalAjustes';
-import logo from '../assets/img/logo.png';
+import logo from '../assets/img/Themalcheck-logo.svg';
 
 const NavLateral: React.FC = () => {
   const { usuario, logout } = useAuth();

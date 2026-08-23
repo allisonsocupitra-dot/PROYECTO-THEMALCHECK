@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Rol } from '../types/auth';
+import ModalConfirmacion from '../components/ModalConfirmacion';
 import logo from '../assets/img/Themalcheck-logo.svg';
 import '../styles/styles.css';
 import '../styles/login.css';
@@ -19,8 +20,10 @@ const RegisterPage: React.FC = () => {
   const [contraseña, setContraseña] = useState('');
   const [confirmacion, setConfirmacion] = useState('');
   const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
@@ -29,14 +32,17 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    const resultado = registrar(nombre, apellido, correo, contraseña, rol);
+    setCargando(true);
+    const resultado = await registrar(nombre, apellido, correo, contraseña, rol);
+    setCargando(false);
 
     if (!resultado.ok) {
-      setError(t('register.errorExiste'));
+      setError(resultado.codigo === 'correoExistente' ? t('register.errorExiste') : t('register.errorGenerico'));
       return;
     }
 
-    navigate('/');
+    // Registro exitoso: mostramos la confirmación y solo entonces mandamos al login
+    setMostrarConfirmacion(true);
   };
 
   return (
@@ -98,7 +104,7 @@ const RegisterPage: React.FC = () => {
             <div className="input-box">
               <i className="uil uil-envelope"></i>
               <input
-                type="text"
+                type="email"
                 inputMode="email"
                 placeholder={t('register.correo.placeholder')}
                 value={correo}
@@ -129,7 +135,9 @@ const RegisterPage: React.FC = () => {
               />
             </div>
 
-            <button type="submit">{t('register.boton')}</button>
+            <button type="submit" disabled={cargando}>
+              {cargando ? <span className="loader"></span> : t('register.boton')}
+            </button>
 
             <div className="enlace-registro">
               <p>
@@ -139,6 +147,13 @@ const RegisterPage: React.FC = () => {
           </form>
         </div>
       </div>
+
+      <ModalConfirmacion
+        abierto={mostrarConfirmacion}
+        titulo={t('confirmacion.registroTitulo')}
+        mensaje={t('confirmacion.registroMensaje')}
+        onContinuar={() => navigate('/auth')}
+      />
 
       <footer className="footer">{t('footer.texto')}</footer>
     </>

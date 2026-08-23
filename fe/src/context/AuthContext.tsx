@@ -1,89 +1,79 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import { mockUsers, agregarUsuario } from '../api/mockUsers';
+import { iniciarSesion, registrarUsuario } from '../api/Usuarios';
+import type { ErrorAuth, CodigoErrorAuth } from '../api/Usuarios';
 import type { Usuario, Rol } from '../types/auth';
-
-type CodigoError = 'credenciales' | 'rol' | 'correoExistente';
 
 interface ResultadoAuth {
   ok: boolean;
-  codigo?: CodigoError;
+  codigo?: CodigoErrorAuth;
   rolReal?: Rol;
 }
 
 interface AuthContextType {
   usuario: Usuario | null;
+  token: string | null;
   estaAutenticado: boolean;
-  login: (correo: string, contraseña: string, rol: Rol) => ResultadoAuth;
-  registrar: (nombre: string, apellido: string, correo: string, contraseña: string, rol: Rol) => ResultadoAuth;
+  login: (correo: string, contraseña: string, rol: Rol) => Promise<ResultadoAuth>;
+  registrar: (nombre: string, apellido: string, correo: string, contraseña: string, rol: Rol) => Promise<ResultadoAuth>;
   logout: () => void;
 }
 
-const CLAVE_STORAGE = 'themalcheck_usuario';
+const CLAVE_USUARIO = 'themalcheck_usuario';
+const CLAVE_TOKEN = 'themalcheck_token';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(() => {
-    const guardado = sessionStorage.getItem(CLAVE_STORAGE);
+    const guardado = sessionStorage.getItem(CLAVE_USUARIO);
     return guardado ? JSON.parse(guardado) : null;
   });
+  const [token, setToken] = useState<string | null>(() => sessionStorage.getItem(CLAVE_TOKEN));
 
-  const guardarSesion = (u: Usuario) => {
+  const guardarSesion = (u: Usuario, t: string) => {
     setUsuario(u);
-    sessionStorage.setItem(CLAVE_STORAGE, JSON.stringify(u));
+    setToken(t);
+    sessionStorage.setItem(CLAVE_USUARIO, JSON.stringify(u));
+    sessionStorage.setItem(CLAVE_TOKEN, t);
   };
 
-  // El login ahora exige que el rol elegido coincida con el rol real de la cuenta.
-  // Si el correo y la contraseña son correctos pero el rol no coincide, se rechaza el ingreso.
-  const login = (correo: string, contraseña: string, rol: Rol): ResultadoAuth => {
-    const encontrado = mockUsers.find(
-      (u) => u.correo.toLowerCase() === correo.toLowerCase() && u.contraseña === contraseña
-    );
-
-    if (!encontrado) {
-      return { ok: false, codigo: 'credenciales' };
+  const login = async (correo: string, contraseña: string, rol: Rol): Promise<ResultadoAuth> => {
+    try {
+      const { token: nuevoToken, usuario: usuarioAutenticado } = await iniciarSesion(correo, contraseña, rol);
+      guardarSesion(usuarioAutenticado, nuevoToken);
+      return { ok: true };
+    } catch (err) {
+      const error = err as ErrorAuth;
+      return { ok: false, codigo: error.codigo ?? 'error', rolReal: error.rolReal };
     }
-
-    if (encontrado.rol !== rol) {
-      return { ok: false, codigo: 'rol', rolReal: encontrado.rol };
-    }
-
-    guardarSesion({
-      id: encontrado.id,
-      nombre: encontrado.nombre,
-      apellido: encontrado.apellido,
-      correo: encontrado.correo,
-      rol: encontrado.rol,
-    });
-
-    return { ok: true };
   };
 
-  const registrar = (
+  const registrar = async (
     nombre: string,
     apellido: string,
     correo: string,
     contraseña: string,
     rol: Rol
-  ): ResultadoAuth => {
-    const yaExiste = mockUsers.some((u) => u.correo.toLowerCase() === correo.toLowerCase());
-
-    if (yaExiste) {
-      return { ok: false, codigo: 'correoExistente' };
+  ): Promise<ResultadoAuth> => {
+    try {
+      await registrarUsuario(nombre, apellido, correo, contraseña, rol);
+      return { ok: true };
+    } catch (err) {
+      const error = err as ErrorAuth;
+      return { ok: false, codigo: error.codigo ?? 'error' };
     }
-
-    agregarUsuario(nombre, apellido, correo, contraseña, rol);
-    return { ok: true };
   };
 
   const logout = () => {
     setUsuario(null);
-    sessionStorage.removeItem(CLAVE_STORAGE);
+    setToken(null);
+    sessionStorage.removeItem(CLAVE_USUARIO);
+    sessionStorage.removeItem(CLAVE_TOKEN);
   };
 
   return (
-    <AuthContext.Provider value={{ usuario, estaAutenticado: !!usuario, login, registrar, logout }}>
+    <AuthContext.Provider value={{ usuario, token, estaAutenticado: !!usuario, login, registrar, logout }}>
       {children}
     </AuthContext.Provider>
   );

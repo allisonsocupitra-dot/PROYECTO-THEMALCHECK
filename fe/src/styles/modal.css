@@ -79,3 +79,27 @@
     color: white;
     border-color: var(--primary-color);
 }
+
+/* ---- Modal de confirmacion (login / registro exitosos) ---- */
+
+.panel-confirmacion{
+    text-align: center;
+}
+
+.icono-confirmacion{
+    font-size: 46px;
+    color: #2f9e5c;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.panel-confirmacion h3{
+    font-size: 18px;
+    color: var(--text-main);
+    margin-bottom: 8px;
+}
+
+.panel-confirmacion p{
+    margin-bottom: 20px;
+    color: var(--text-muted);
+}

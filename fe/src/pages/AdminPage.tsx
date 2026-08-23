@@ -1,38 +1,82 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { mockUsers } from '../api/mockUsers';
-import { mockRegistros } from '../api/mockRegistros';
+import { listarTecnicos } from '../api/Usuarios';
+import { obtenerRegistrosPorTecnico } from '../api/Registros';
+import type { RegistroAnalisis } from '../api/Registros';
+import type { Usuario } from '../types/auth';
 import NavLateral from '../components/NavLateral';
 import '../styles/styles.css';
 import '../styles/dashboard.css';
 import '../styles/admin.css';
 
-const AdminReportsPage: React.FC = () => {
-  const { usuario } = useAuth();
+const AdminPage: React.FC = () => {
+  const { usuario, token } = useAuth();
   const { t } = useLanguage();
 
   const [busqueda, setBusqueda] = useState('');
+  const [tecnicos, setTecnicos] = useState<Usuario[]>([]);
+  const [cargandoTecnicos, setCargandoTecnicos] = useState(false);
+  const [errorTecnicos, setErrorTecnicos] = useState(false);
+
   const [usuarioSeleccionadoId, setUsuarioSeleccionadoId] = useState<string | null>(null);
+  const [registros, setRegistros] = useState<RegistroAnalisis[]>([]);
+  const [cargandoRegistros, setCargandoRegistros] = useState(false);
 
-  const tecnicos = useMemo(() => mockUsers.filter((u) => u.rol === 'tecnico'), []);
+  // Vuelve a pedir la lista de técnicos cada vez que cambia el texto buscado
+  useEffect(() => {
+    if (!token) return;
 
-  const tecnicosFiltrados = useMemo(() => {
-    const termino = busqueda.trim().toLowerCase();
-    if (!termino) return tecnicos;
-    return tecnicos.filter(
-      (t2) =>
-        `${t2.nombre} ${t2.apellido}`.toLowerCase().includes(termino) ||
-        t2.correo.toLowerCase().includes(termino)
-    );
-  }, [busqueda, tecnicos]);
+    let cancelado = false;
+    setCargandoTecnicos(true);
+    setErrorTecnicos(false);
 
-  const registrosDelSeleccionado = useMemo(() => {
-    if (!usuarioSeleccionadoId) return [];
-    return mockRegistros.filter((r) => r.usuarioId === usuarioSeleccionadoId);
-  }, [usuarioSeleccionadoId]);
+    listarTecnicos(busqueda, token)
+      .then((resultado) => {
+        if (!cancelado) setTecnicos(resultado);
+      })
+      .catch(() => {
+        if (!cancelado) setErrorTecnicos(true);
+      })
+      .finally(() => {
+        if (!cancelado) setCargandoTecnicos(false);
+      });
 
-  const usuarioSeleccionado = tecnicos.find((t2) => t2.id === usuarioSeleccionadoId);
+    return () => {
+      cancelado = true;
+    };
+  }, [busqueda, token]);
+
+  // Pide los registros del técnico seleccionado
+  useEffect(() => {
+    if (!usuarioSeleccionadoId || !token) {
+      setRegistros([]);
+      return;
+    }
+
+    let cancelado = false;
+    setCargandoRegistros(true);
+
+    obtenerRegistrosPorTecnico(usuarioSeleccionadoId, token)
+      .then((resultado) => {
+        if (!cancelado) setRegistros(resultado);
+      })
+      .catch(() => {
+        if (!cancelado) setRegistros([]);
+      })
+      .finally(() => {
+        if (!cancelado) setCargandoRegistros(false);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [usuarioSeleccionadoId, token]);
+
+  const usuarioSeleccionado = useMemo(
+    () => tecnicos.find((t2) => t2.id === usuarioSeleccionadoId),
+    [tecnicos, usuarioSeleccionadoId]
+  );
 
   return (
     <>
@@ -67,25 +111,45 @@ const AdminReportsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {tecnicosFiltrados.map((t2) => (
-                    <tr
-                      key={t2.id}
-                      className={t2.id === usuarioSeleccionadoId ? 'fila-seleccionada' : ''}
-                      onClick={() => setUsuarioSeleccionadoId(t2.id)}
-                    >
-                      <td>{t2.nombre} {t2.apellido}</td>
-                      <td>{t2.correo}</td>
-                      <td>{mockRegistros.filter((r) => r.usuarioId === t2.id).length}</td>
+                  {cargandoTecnicos && (
+                    <tr>
+                      <td colSpan={3} className="texto-suave">
+                        {t('admin.cargando')}
+                      </td>
                     </tr>
-                  ))}
+                  )}
 
-                  {tecnicosFiltrados.length === 0 && (
+                  {!cargandoTecnicos && errorTecnicos && (
+                    <tr>
+                      <td colSpan={3} className="texto-suave">
+                        {t('admin.error')}
+                      </td>
+                    </tr>
+                  )}
+
+                  {!cargandoTecnicos && !errorTecnicos && tecnicos.length === 0 && (
                     <tr>
                       <td colSpan={3} className="texto-suave">
                         {t('admin.tabla.vacio')}
                       </td>
                     </tr>
                   )}
+
+                  {!cargandoTecnicos &&
+                    !errorTecnicos &&
+                    tecnicos.map((t2) => (
+                      <tr
+                        key={t2.id}
+                        className={t2.id === usuarioSeleccionadoId ? 'fila-seleccionada' : ''}
+                        onClick={() => setUsuarioSeleccionadoId(t2.id)}
+                      >
+                        <td>
+                          {t2.nombre} {t2.apellido}
+                        </td>
+                        <td>{t2.correo}</td>
+                        <td>{t2.id === usuarioSeleccionadoId ? registros.length : '—'}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -109,27 +173,36 @@ const AdminReportsPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {registrosDelSeleccionado.map((r) => (
-                      <tr key={r.id}>
-                        <td>{r.nombreImagen}</td>
-                        <td>{new Date(r.fecha).toLocaleDateString()}</td>
-                        <td>{r.temperaturaMax}°C</td>
-                        <td>{r.temperaturaMin}°C</td>
-                        <td>
-                          <span className={`estado estado-${r.estado.toLowerCase()}`}>
-                            {t(`estado.${r.estado.toLowerCase()}`)}
-                          </span>
+                    {cargandoRegistros && (
+                      <tr>
+                        <td colSpan={5} className="texto-suave">
+                          {t('admin.cargando')}
                         </td>
                       </tr>
-                    ))}
+                    )}
 
-                    {registrosDelSeleccionado.length === 0 && (
+                    {!cargandoRegistros && registros.length === 0 && (
                       <tr>
                         <td colSpan={5} className="texto-suave">
                           {t('admin.registros.vacio')}
                         </td>
                       </tr>
                     )}
+
+                    {!cargandoRegistros &&
+                      registros.map((r) => (
+                        <tr key={r.id}>
+                          <td>{r.nombreImagen}</td>
+                          <td>{new Date(r.fecha).toLocaleDateString()}</td>
+                          <td>{r.temperaturaMax}°C</td>
+                          <td>{r.temperaturaMin}°C</td>
+                          <td>
+                            <span className={`estado estado-${r.estado.toLowerCase()}`}>
+                              {t(`estado.${r.estado.toLowerCase()}`)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               )}
@@ -143,4 +216,4 @@ const AdminReportsPage: React.FC = () => {
   );
 };
 
-export default AdminReportsPage;
+export default AdminPage;

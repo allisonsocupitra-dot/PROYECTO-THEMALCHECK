@@ -32,12 +32,7 @@ export const traducciones: Record<string, Entrada> = {
   'landing.pie': { es: 'Análisis termográfico preciso', en: 'Precise thermographic analysis' },
   'landing.estado': { es: 'Sistema operativo', en: 'System online' },
 
-  // Registro — paso 1: elegir rol
-  'register.paso.rolTitulo': { es: '¿Cómo vas a usar ThemalCheck?', en: 'How will you use ThemalCheck?' },
-  'register.paso.rolDescripcion': {
-    es: 'Elige un rol para continuar con el registro.',
-    en: 'Choose a role to continue registering.',
-  },
+  // Registro
   'register.rol.tecnico': { es: 'Técnico', en: 'Technician' },
   'register.rol.tecnico.desc': {
     es: 'Carga y analiza tus propias imágenes termográficas.',
@@ -48,11 +43,7 @@ export const traducciones: Record<string, Entrada> = {
     es: 'Administra técnicos y revisa sus reportes.',
     en: 'Manage technicians and review their reports.',
   },
-
-  // Registro — paso 2: formulario
   'register.titulo': { es: 'Registro', en: 'Register' },
-  'register.registrandoComo': { es: 'Registrando cuenta de', en: 'Registering account as' },
-  'register.cambiarRol': { es: '← Cambiar rol', en: '← Change role' },
   'register.nombre.placeholder': { es: 'Nombre', en: 'First name' },
   'register.apellido.placeholder': { es: 'Apellido', en: 'Last name' },
   'register.correo.placeholder': { es: 'Ingrese el correo electrónico', en: 'Enter your email' },
@@ -66,6 +57,7 @@ export const traducciones: Record<string, Entrada> = {
     es: 'Ya existe una cuenta con ese correo',
     en: 'An account with that email already exists',
   },
+  'register.errorGenerico': { es: 'No se pudo completar el registro', en: 'The registration could not be completed' },
 
   // Explorador — carpetas
   'carpetas.nueva': { es: 'Nueva carpeta', en: 'New folder' },
@@ -110,6 +102,16 @@ export const traducciones: Record<string, Entrada> = {
   },
   'ajustes.cerrar': { es: 'Cerrar', en: 'Close' },
 
+  // Modal de confirmación (éxito en login / registro)
+  'confirmacion.continuar': { es: 'Continuar', en: 'Continue' },
+  'confirmacion.loginTitulo': { es: '¡Bienvenido de nuevo!', en: 'Welcome back!' },
+  'confirmacion.loginMensaje': { es: 'Inicio de sesión exitoso.', en: 'You signed in successfully.' },
+  'confirmacion.registroTitulo': { es: '¡Registro exitoso!', en: 'Registration successful!' },
+  'confirmacion.registroMensaje': {
+    es: 'Tu cuenta se creó correctamente. Ahora puedes iniciar sesión.',
+    en: 'Your account was created successfully. You can now sign in.',
+  },
+
   // Panel de administración
   'admin.titulo': { es: 'Panel de administración', en: 'Admin panel' },
   'admin.buscar.placeholder': { es: 'Buscar técnico por nombre o correo', en: 'Search technician by name or email' },
@@ -117,6 +119,8 @@ export const traducciones: Record<string, Entrada> = {
   'admin.tabla.correo': { es: 'Correo', en: 'Email' },
   'admin.tabla.registros': { es: 'Registros', en: 'Records' },
   'admin.tabla.vacio': { es: 'No se encontraron técnicos con ese criterio', en: 'No technicians found for that search' },
+  'admin.cargando': { es: 'Cargando…', en: 'Loading…' },
+  'admin.error': { es: 'No se pudieron cargar los datos', en: 'The data could not be loaded' },
   'admin.registros.titulo': { es: 'Registros de', en: 'Records for' },
   'admin.registros.seleccion': {
     es: 'Selecciona un técnico para ver sus registros',

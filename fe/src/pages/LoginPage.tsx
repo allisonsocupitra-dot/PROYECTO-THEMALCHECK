@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Rol } from '../types/auth';
+import ModalConfirmacion from '../components/ModalConfirmacion';
 import logo from '../assets/img/Themalcheck-logo.svg';
 import '../styles/styles.css';
 import '../styles/login.css';
@@ -16,12 +17,17 @@ const LoginPage: React.FC = () => {
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+    setCargando(true);
 
-    const resultado = login(correo, contraseña, rol);
+    const resultado = await login(correo, contraseña, rol);
+
+    setCargando(false);
 
     if (!resultado.ok) {
       if (resultado.codigo === 'rol' && resultado.rolReal) {
@@ -33,7 +39,8 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    navigate('/dashboard');
+    // El login fue exitoso: mostramos la confirmación y solo entonces vamos al explorador
+    setMostrarConfirmacion(true);
   };
 
   return (
@@ -73,7 +80,7 @@ const LoginPage: React.FC = () => {
             <div className="input-box">
               <i className="uil uil-envelope"></i>
               <input
-                type="text"
+                type="email"
                 inputMode="email"
                 placeholder={t('login.correo.placeholder')}
                 value={correo}
@@ -93,7 +100,9 @@ const LoginPage: React.FC = () => {
               />
             </div>
 
-            <button type="submit">{t('login.boton')}</button>
+            <button type="submit" disabled={cargando}>
+              {cargando ? <span className="loader"></span> : t('login.boton')}
+            </button>
 
             <div className="enlace-registro">
               <p>
@@ -103,6 +112,13 @@ const LoginPage: React.FC = () => {
           </form>
         </div>
       </div>
+
+      <ModalConfirmacion
+        abierto={mostrarConfirmacion}
+        titulo={t('confirmacion.loginTitulo')}
+        mensaje={t('confirmacion.loginMensaje')}
+        onContinuar={() => navigate('/dashboard')}
+      />
 
       <footer className="footer">{t('footer.texto')}</footer>
     </>

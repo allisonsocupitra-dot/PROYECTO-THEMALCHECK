@@ -1,43 +1,65 @@
 import type { Rol, Usuario } from '../types/auth';
-import { API_BASE_URL } from './config';
-
-export interface RespuestaLogin {
-  token: string;
-  usuario: Usuario;
-}
+import { API_BASE_URL } from './Config';
 
 export type CodigoErrorAuth = 'credenciales' | 'rol' | 'correoExistente' | 'error';
 
 export interface ErrorAuth {
   codigo: CodigoErrorAuth;
   rolReal?: Rol; // solo viene lleno cuando codigo === 'rol'
+  mensaje?: string;
 }
 
-// POST /auth/login — el backend valida correo+contraseña+rol y devuelve token + usuario.
-// Si el rol no coincide con el real de la cuenta, debe responder 403 con { rolReal } en el body.
-export const iniciarSesion = async (correo: string, contraseña: string, rol: Rol): Promise<RespuestaLogin> => {
-  const respuesta = await fetch(`${API_BASE_URL}/auth/login`, {
+// El backend usa id_rol numérico y nombres de rol capitalizados en la tabla `rol`.
+const ID_POR_ROL: Record<Rol, number> = {
+  admin: 1,
+  tecnico: 2,
+};
+
+const ROL_POR_NOMBRE: Record<string, Rol> = {
+  Administrador: 'admin',
+  Tecnico: 'tecnico',
+};
+
+function normalizarRol(nombreRol: string): Rol {
+  return ROL_POR_NOMBRE[nombreRol] ?? 'tecnico';
+}
+
+// POST /api/v1/auth/login — el backend valida correo+contraseña+id_rol y devuelve los datos del usuario (sin token).
+// Si el rol no coincide con el real de la cuenta, responde 403 con { detail: "...id_rol=N" }.
+export const iniciarSesion = async (correo: string, contraseña: string, rol: Rol): Promise<Usuario> => {
+  const respuesta = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ correo, contraseña, rol }),
+    body: JSON.stringify({
+      correo_usuario: correo,
+      contraseña_usuario: contraseña,
+      id_rol: ID_POR_ROL[rol],
+    }),
   });
 
   if (!respuesta.ok) {
+    const cuerpo = await respuesta.json().catch(() => null);
     if (respuesta.status === 403) {
-      const cuerpo = await respuesta.json().catch(() => null);
-      const error: ErrorAuth = { codigo: 'rol', rolReal: cuerpo?.rolReal };
+      const error: ErrorAuth = { codigo: 'rol', mensaje: cuerpo?.detail };
       throw error;
     }
-
-    const error: ErrorAuth = { codigo: 'credenciales' };
+    const error: ErrorAuth = { codigo: 'credenciales', mensaje: cuerpo?.detail };
     throw error;
   }
 
-  return respuesta.json();
+  const datos = await respuesta.json();
+  const usuario: Usuario = {
+    id: String(datos.id_usuario),
+    nombre: datos.nombre_usuario,
+    apellido: '',
+    correo: datos.correo_usuario,
+    rol: normalizarRol(datos.rol),
+  };
+  return usuario;
 };
 
-// POST /auth/register — crea la cuenta con el rol elegido.
-// Debe responder 409 si el correo ya existe.
+// POST /api/v1/auth/register — crea la cuenta con el rol elegido.
+// Responde 400 si el correo ya existe (no 409).
 export const registrarUsuario = async (
   nombre: string,
   apellido: string,
@@ -45,28 +67,33 @@ export const registrarUsuario = async (
   contraseña: string,
   rol: Rol
 ): Promise<void> => {
-  const respuesta = await fetch(`${API_BASE_URL}/auth/register`, {
+  const respuesta = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nombre, apellido, correo, contraseña, rol }),
+    body: JSON.stringify({
+      nombre_usuario: `${nombre} ${apellido}`.trim(),
+      correo_usuario: correo,
+      contraseña_usuario: contraseña,
+      id_rol: ID_POR_ROL[rol],
+    }),
   });
 
   if (!respuesta.ok) {
-    const codigo: CodigoErrorAuth = respuesta.status === 409 ? 'correoExistente' : 'error';
-    const error: ErrorAuth = { codigo };
+    const cuerpo = await respuesta.json().catch(() => null);
+    const codigo: CodigoErrorAuth = respuesta.status === 400 ? 'correoExistente' : 'error';
+    const error: ErrorAuth = { codigo, mensaje: cuerpo?.detail };
     throw error;
   }
 };
 
-// GET /usuarios?rol=tecnico&busqueda=texto — usado solo por el panel de administración.
-// Requiere el token del administrador autenticado.
-export const listarTecnicos = async (busqueda: string, token: string): Promise<Usuario[]> => {
+// GET /usuarios?rol=tecnico&busqueda=texto — lista de técnicos para el panel de administración.
+// NOTA: revisa en tu Swagger (http://127.0.0.1:8000/docs) si esta ruta también lleva el prefijo
+// /api/v1/... antes de probarla; todavía no la hemos confirmado como hicimos con auth.
+export const listarTecnicos = async (busqueda: string): Promise<Usuario[]> => {
   const parametros = new URLSearchParams({ rol: 'tecnico' });
   if (busqueda.trim()) parametros.set('busqueda', busqueda.trim());
 
-  const respuesta = await fetch(`${API_BASE_URL}/usuarios?${parametros.toString()}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const respuesta = await fetch(`${API_BASE_URL}/usuarios?${parametros.toString()}`);
 
   if (!respuesta.ok) {
     throw new Error('No se pudieron cargar los técnicos');

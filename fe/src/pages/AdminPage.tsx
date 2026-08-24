@@ -11,7 +11,7 @@ import '../styles/dashboard.css';
 import '../styles/admin.css';
 
 const AdminPage: React.FC = () => {
-  const { usuario, token } = useAuth();
+  const { usuario } = useAuth();
   const { t } = useLanguage();
 
   const [busqueda, setBusqueda] = useState('');
@@ -25,13 +25,11 @@ const AdminPage: React.FC = () => {
 
   // Vuelve a pedir la lista de técnicos cada vez que cambia el texto buscado
   useEffect(() => {
-    if (!token) return;
-
     let cancelado = false;
     setCargandoTecnicos(true);
     setErrorTecnicos(false);
 
-    listarTecnicos(busqueda, token)
+    listarTecnicos(busqueda)
       .then((resultado) => {
         if (!cancelado) setTecnicos(resultado);
       })
@@ -45,11 +43,11 @@ const AdminPage: React.FC = () => {
     return () => {
       cancelado = true;
     };
-  }, [busqueda, token]);
+  }, [busqueda]);
 
   // Pide los registros del técnico seleccionado
   useEffect(() => {
-    if (!usuarioSeleccionadoId || !token) {
+    if (!usuarioSeleccionadoId) {
       setRegistros([]);
       return;
     }
@@ -57,7 +55,7 @@ const AdminPage: React.FC = () => {
     let cancelado = false;
     setCargandoRegistros(true);
 
-    obtenerRegistrosPorTecnico(usuarioSeleccionadoId, token)
+    obtenerRegistrosPorTecnico(usuarioSeleccionadoId)
       .then((resultado) => {
         if (!cancelado) setRegistros(resultado);
       })
@@ -71,7 +69,7 @@ const AdminPage: React.FC = () => {
     return () => {
       cancelado = true;
     };
-  }, [usuarioSeleccionadoId, token]);
+  }, [usuarioSeleccionadoId]);
 
   const usuarioSeleccionado = useMemo(
     () => tecnicos.find((t2) => t2.id === usuarioSeleccionadoId),

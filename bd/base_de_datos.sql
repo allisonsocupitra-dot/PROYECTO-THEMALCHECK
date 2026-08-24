@@ -73,3 +73,5 @@ ALTER TABLE imagen_termografica
 ALTER TABLE punto_medicion
     ADD CONSTRAINT fk_punto_imagen
     FOREIGN KEY (id_imagen) REFERENCES imagen_termografica(id_imagen);
+    
+INSERT INTO rol (tipo_rol) VALUES ('Administrador'), ('Tecnico');

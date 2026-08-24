@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config';
+import { API_BASE_URL } from './Config';
 
 export interface RegistroAnalisis {
   id: string;
@@ -11,11 +11,8 @@ export interface RegistroAnalisis {
 }
 
 // GET /usuarios/:id/registros — historial de análisis de un técnico puntual.
-// Requiere el token del administrador autenticado.
-export const obtenerRegistrosPorTecnico = async (usuarioId: string, token: string): Promise<RegistroAnalisis[]> => {
-  const respuesta = await fetch(`${API_BASE_URL}/usuarios/${usuarioId}/registros`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const obtenerRegistrosPorTecnico = async (usuarioId: string): Promise<RegistroAnalisis[]> => {
+  const respuesta = await fetch(`${API_BASE_URL}/usuarios/${usuarioId}/registros`);
 
   if (!respuesta.ok) {
     throw new Error('No se pudieron cargar los registros');

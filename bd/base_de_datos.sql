@@ -1,5 +1,5 @@
-CREATE DATABASE themalcheck;
-USE themalcheck;
+CREATE DATABASE thermalcheck;
+USE thermalcheck;
 
 CREATE TABLE usuario (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,

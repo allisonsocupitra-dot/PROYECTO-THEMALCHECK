@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     DB_PASSWORD: str = ""
     DB_HOST: str = "127.0.0.1"
     DB_PORT: str = "3355"
-    DB_NAME: str = "themalcheck"
+    DB_NAME: str = "thermalcheck"
 
     DATABASE_URL: str = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 

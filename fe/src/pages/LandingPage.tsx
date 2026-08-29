@@ -10,9 +10,9 @@ const LandingPage: React.FC = () => {
   return (
     <main className="landing-page">
       <header className="landing-header">
-        <Link className="landing-brand" to="/" aria-label="ThemalCheck">
+        <Link className="landing-brand" to="/" aria-label="ThermalCheck">
           <img src={logo} alt="" />
-          <span>ThemalCheck</span>
+          <span>ThermalCheck</span>
         </Link>
         <Link className="landing-login-link" to="/auth">
           {t('landing.iniciar')}
@@ -22,7 +22,7 @@ const LandingPage: React.FC = () => {
       <section className="landing-hero">
         <div className="landing-copy">
           <p className="landing-eyebrow">{t('landing.etiqueta')}</p>
-          <h1>Themal<span>Check</span></h1>
+          <h1>Thermal<span>Check</span></h1>
           <p className="landing-description">{t('landing.descripcion')}</p>
           <Link className="landing-cta" to="/auth">
             {t('landing.comenzar')} <span aria-hidden="true">-&gt;</span>

@@ -46,9 +46,9 @@ const LoginPage: React.FC = () => {
   return (
     <>
       <header className="auth-header">
-        <Link className="auth-brand" to="/" aria-label="ThemalCheck">
+        <Link className="auth-brand" to="/" aria-label="ThermalCheck">
           <img src={logo} alt="" />
-          <span>ThemalCheck</span>
+          <span>ThermalCheck</span>
         </Link>
         <p>{t('login.subtitulo')}</p>
       </header>

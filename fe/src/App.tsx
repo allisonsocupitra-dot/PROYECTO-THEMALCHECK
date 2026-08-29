@@ -7,6 +7,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
+import RecuperarPage from './pages/RecuperarPage';
+import RestablecerPage from './pages/RestablecerPage';
 import DashboardPage from './pages/DashboardPage';
 import VisorPage from './pages/VisorPage';
 import AdminReportsPage from './pages/AdminPage';
@@ -20,6 +22,8 @@ const RouteView: React.FC = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/recuperar" element={<RecuperarPage />} />
+        <Route path="/restablecer-contrasena" element={<RestablecerPage />} />
 
         <Route path="/dashboard" element={<ProtectedRoute rolesPermitidos={['tecnico', 'admin']}><DashboardPage /></ProtectedRoute>} />
         <Route path="/visor" element={<ProtectedRoute rolesPermitidos={['tecnico', 'admin']}><VisorPage /></ProtectedRoute>} />

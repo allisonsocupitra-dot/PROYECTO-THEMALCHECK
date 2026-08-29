@@ -20,6 +20,32 @@ export const traducciones: Record<string, Entrada> = {
   'login.registrate': { es: 'Regístrate', en: 'Sign up' },
   'login.errorCredenciales': { es: 'Correo o contraseña incorrectos', en: 'Incorrect email or password' },
   'login.errorRol': { es: 'Esta cuenta está registrada como', en: 'This account is registered as' },
+  'login.olvideContrasena': { es: '¿Olvidaste tu contraseña?', en: 'Forgot your password?' },
+
+  // Recuperación de contraseña
+  'recuperar.titulo': { es: 'Recuperar contraseña', en: 'Recover password' },
+  'recuperar.descripcion': {
+    es: 'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.',
+    en: "Enter your email and we'll send you a link to reset your password.",
+  },
+  'recuperar.boton': { es: 'Enviar enlace', en: 'Send link' },
+  'recuperar.enviadoTitulo': { es: 'Revisa tu correo', en: 'Check your email' },
+  'recuperar.enviadoMensaje': {
+    es: 'Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña.',
+    en: 'If the email is registered, we sent you a link to reset your password.',
+  },
+  'recuperar.volverLogin': { es: 'Volver a iniciar sesión', en: 'Back to sign in' },
+  'recuperar.restablecerTitulo': { es: 'Nueva contraseña', en: 'New password' },
+  'recuperar.restablecerBoton': { es: 'Restablecer contraseña', en: 'Reset password' },
+  'recuperar.tokenInvalido': {
+    es: 'El enlace no es válido o ya expiró. Solicita uno nuevo.',
+    en: 'The link is invalid or has expired. Request a new one.',
+  },
+  'recuperar.exitoTitulo': { es: '¡Contraseña actualizada!', en: 'Password updated!' },
+  'recuperar.exitoMensaje': {
+    es: 'Ya puedes iniciar sesión con tu nueva contraseña.',
+    en: 'You can now sign in with your new password.',
+  },
 
   // Landing
   'landing.etiqueta': { es: 'Inteligencia térmica para decisiones claras', en: 'Thermal intelligence for clear decisions' },
@@ -61,6 +87,8 @@ export const traducciones: Record<string, Entrada> = {
 
   // Explorador — carpetas
   'carpetas.nueva': { es: 'Nueva carpeta', en: 'New folder' },
+  'carpetas.subirCarpeta': { es: 'Subir carpeta', en: 'Upload folder' },
+  'carpetas.nombrePorDefecto': { es: 'Carpeta cargada', en: 'Uploaded folder' },
   'carpetas.nombrePlaceholder': { es: 'Nombre de la carpeta', en: 'Folder name' },
   'carpetas.crear': { es: 'Crear', en: 'Create' },
   'carpetas.cancelar': { es: 'Cancelar', en: 'Cancel' },
@@ -93,6 +121,13 @@ export const traducciones: Record<string, Entrada> = {
   },
   'visor.tempMax': { es: 'Máx.', en: 'Max' },
   'visor.tempMin': { es: 'Mín.', en: 'Min' },
+  'visor.herramienta.seleccionar': { es: 'Seleccionar', en: 'Select' },
+  'visor.herramienta.punto': { es: 'Punto', en: 'Point' },
+  'visor.herramienta.rectangulo': { es: 'Rectángulo', en: 'Rectangle' },
+  'visor.herramienta.circulo': { es: 'Círculo', en: 'Circle' },
+  'visor.herramienta.linea': { es: 'Línea', en: 'Line' },
+  'visor.herramienta.color': { es: 'Color de las formas', en: 'Shape color' },
+  'visor.herramienta.borrarTodo': { es: 'Borrar todas las marcas', en: 'Clear all marks' },
 
   // Modal de ajustes
   'ajustes.idioma.titulo': { es: 'Idioma', en: 'Language' },
@@ -140,7 +175,7 @@ export const traducciones: Record<string, Entrada> = {
 
   // Footer
   'footer.texto': {
-    es: 'ThemalCheck — Análisis Termográfico | Proyecto SENA — Análisis y Desarrollo de Software | 2026',
-    en: 'ThemalCheck — Thermographic Analysis | SENA Project — Software Analysis and Development | 2026',
+    es: 'ThermalCheck — Análisis Termográfico | Proyecto SENA — Análisis y Desarrollo de Software | 2026',
+    en: 'ThermalCheck — Thermographic Analysis | SENA Project — Software Analysis and Development | 2026',
   },
 };

@@ -100,6 +100,10 @@ const LoginPage: React.FC = () => {
               />
             </div>
 
+            <div className="enlace-olvide">
+              <Link to="/recuperar">{t('login.olvideContrasena')}</Link>
+            </div>
+
             <button type="submit" disabled={cargando}>
               {cargando ? <span className="loader"></span> : t('login.boton')}
             </button>

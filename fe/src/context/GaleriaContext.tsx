@@ -7,7 +7,7 @@ interface GaleriaContextType {
   carpetas: Carpeta[];
   carpetaActivaId: string;
   imagenSeleccionadaId: string | null;
-  crearCarpeta: (nombre: string) => void;
+  crearCarpeta: (nombre: string) => string;
   seleccionarCarpeta: (id: string) => void;
   agregarImagenes: (carpetaId: string, archivos: File[]) => void;
   seleccionarImagen: (id: string) => void;
@@ -35,9 +35,8 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [carpetaActivaId, setCarpetaActivaId] = useState<string>('general');
   const [imagenSeleccionadaId, setImagenSeleccionadaId] = useState<string | null>(null);
 
-  const crearCarpeta = (nombre: string) => {
-    const nombreLimpio = nombre.trim();
-    if (!nombreLimpio) return;
+  const crearCarpeta = (nombre: string): string => {
+    const nombreLimpio = nombre.trim() || 'Nueva carpeta';
 
     const nueva: Carpeta = {
       id: `carpeta-${Date.now()}`,
@@ -47,6 +46,7 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     setCarpetas((prev) => [...prev, nueva]);
     setCarpetaActivaId(nueva.id);
+    return nueva.id;
   };
 
   const seleccionarCarpeta = (id: string) => setCarpetaActivaId(id);

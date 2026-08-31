@@ -11,6 +11,7 @@ import RecuperarPage from './pages/RecuperarPage';
 import RestablecerPage from './pages/RestablecerPage';
 import DashboardPage from './pages/DashboardPage';
 import VisorPage from './pages/VisorPage';
+import MisReportesPage from './pages/ReportesPage';
 import AdminReportsPage from './pages/AdminPage';
 
 const RouteView: React.FC = () => {
@@ -27,6 +28,7 @@ const RouteView: React.FC = () => {
 
         <Route path="/dashboard" element={<ProtectedRoute rolesPermitidos={['tecnico', 'admin']}><DashboardPage /></ProtectedRoute>} />
         <Route path="/visor" element={<ProtectedRoute rolesPermitidos={['tecnico', 'admin']}><VisorPage /></ProtectedRoute>} />
+        <Route path="/mis-reportes" element={<ProtectedRoute rolesPermitidos={['tecnico', 'admin']}><MisReportesPage /></ProtectedRoute>} />
         <Route path="/admin/reportes" element={<ProtectedRoute rolesPermitidos={['admin']}><AdminReportsPage /></ProtectedRoute>} />
       </Routes>
     </div>

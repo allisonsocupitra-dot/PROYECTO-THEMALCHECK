@@ -33,6 +33,10 @@ const NavLateral: React.FC = () => {
         <i className="fa-regular fa-file"></i>
       </Link>
 
+      <Link to="/mis-reportes" className={esActivo('/mis-reportes') ? 'nav-activo' : ''} title={t('nav.misReportes')}>
+        <i className="fa-solid fa-clipboard-list"></i>
+      </Link>
+
       {usuario?.rol === 'admin' && (
         <Link
           to="/admin/reportes"

@@ -20,16 +20,74 @@ interface Anotacion {
   color: string;
 }
 
+interface FilaEditable {
+  id: string;
+  clave: string;
+  valor: string;
+}
+
+// Dibuja una anotación sobre un canvas usando las mismas coordenadas porcentuales
+// que se usan para mostrarla en pantalla, para que la imagen exportada quede idéntica
+const dibujarAnotacionEnCanvas = (ctx: CanvasRenderingContext2D, a: Anotacion, ancho: number, alto: number) => {
+  const px = (v: number) => (v / 100) * ancho;
+  const py = (v: number) => (v / 100) * alto;
+  const grosor = Math.max(2, ancho * 0.004);
+
+  ctx.lineWidth = grosor;
+  ctx.strokeStyle = a.color;
+  ctx.fillStyle = a.color;
+
+  if (a.tipo === 'punto') {
+    ctx.beginPath();
+    ctx.arc(px(a.xInicio), py(a.yInicio), Math.max(4, ancho * 0.01), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = grosor / 2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+    return;
+  }
+
+  const x1 = px(Math.min(a.xInicio, a.xFin));
+  const y1 = py(Math.min(a.yInicio, a.yFin));
+  const w = px(Math.abs(a.xFin - a.xInicio));
+  const h = py(Math.abs(a.yFin - a.yInicio));
+
+  if (a.tipo === 'rectangulo') {
+    ctx.globalAlpha = 0.15;
+    ctx.fillRect(x1, y1, w, h);
+    ctx.globalAlpha = 1;
+    ctx.strokeRect(x1, y1, w, h);
+    return;
+  }
+
+  if (a.tipo === 'circulo') {
+    ctx.beginPath();
+    ctx.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.15;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.stroke();
+    return;
+  }
+
+  // línea
+  ctx.beginPath();
+  ctx.moveTo(px(a.xInicio), py(a.yInicio));
+  ctx.lineTo(px(a.xFin), py(a.yFin));
+  ctx.stroke();
+};
+
 const VisorPage: React.FC = () => {
   const { usuario } = useAuth();
   const { t } = useLanguage();
-  const { carpetas, imagenSeleccionadaId, seleccionarImagen } = useGaleria();
+  const { carpetas, imagenSeleccionadaId, seleccionarImagen, registrarReporte } = useGaleria();
   const [avisoPendiente, setAvisoPendiente] = useState(false);
 
   const [herramienta, setHerramienta] = useState<Herramienta>('ninguna');
   const [colorSeleccionado, setColorSeleccionado] = useState('#39d353');
   const [anotacionesPorImagen, setAnotacionesPorImagen] = useState<Record<string, Anotacion[]>>({});
   const [dibujando, setDibujando] = useState<Anotacion | null>(null);
+  const [notasPorImagen, setNotasPorImagen] = useState<Record<string, FilaEditable[]>>({});
   const contadorRef = useRef(0);
   const inputColorRef = useRef<HTMLInputElement>(null);
 
@@ -48,18 +106,43 @@ const VisorPage: React.FC = () => {
   }, [todasLasImagenes, imagenSeleccionadaId]);
 
   const anotaciones = imagenActiva ? anotacionesPorImagen[imagenActiva.id] ?? [] : [];
+  const notas = imagenActiva ? notasPorImagen[imagenActiva.id] ?? [] : [];
 
+  // Compone la imagen original + las figuras marcadas en un canvas y descarga el resultado,
+  // así las anotaciones quedan fijas en el archivo exportado
   const handleExportarImagen = () => {
     if (!imagenActiva) return;
-    const enlace = document.createElement('a');
-    enlace.href = imagenActiva.urlPrevia;
-    enlace.download = imagenActiva.archivo.name;
-    enlace.click();
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.drawImage(img, 0, 0);
+      anotaciones.forEach((a) => dibujarAnotacionEnCanvas(ctx, a, canvas.width, canvas.height));
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = `marcada-${imagenActiva.archivo.name}`;
+        enlace.click();
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    };
+    img.src = imagenActiva.urlPrevia;
   };
 
-  const mostrarAvisoPendiente = () => {
+  const handleExportarReporte = (formato: 'PDF' | 'DOC') => {
+    if (!imagenActiva) return;
+    registrarReporte(imagenActiva.archivo.name, imagenActiva.carpeta, formato);
     setAvisoPendiente(true);
-    window.setTimeout(() => setAvisoPendiente(false), 2500);
+    window.setTimeout(() => setAvisoPendiente(false), 3000);
   };
 
   // Todas las coordenadas se guardan en % relativos a la imagen renderizada,
@@ -172,6 +255,29 @@ const VisorPage: React.FC = () => {
 
   const esHerramientaActiva = (h: Herramienta) =>
     herramienta === h ? 'boton-herramienta boton-herramienta-activa' : 'boton-herramienta';
+
+  // Tabla editable de anotaciones (clave/valor), independiente por imagen
+  const agregarFilaNota = () => {
+    if (!imagenActiva) return;
+    const nueva: FilaEditable = { id: `nota-${Date.now()}`, clave: '', valor: '' };
+    setNotasPorImagen((prev) => ({ ...prev, [imagenActiva.id]: [...(prev[imagenActiva.id] ?? []), nueva] }));
+  };
+
+  const actualizarFilaNota = (id: string, campo: 'clave' | 'valor', texto: string) => {
+    if (!imagenActiva) return;
+    setNotasPorImagen((prev) => ({
+      ...prev,
+      [imagenActiva.id]: (prev[imagenActiva.id] ?? []).map((f) => (f.id === id ? { ...f, [campo]: texto } : f)),
+    }));
+  };
+
+  const eliminarFilaNota = (id: string) => {
+    if (!imagenActiva) return;
+    setNotasPorImagen((prev) => ({
+      ...prev,
+      [imagenActiva.id]: (prev[imagenActiva.id] ?? []).filter((f) => f.id !== id),
+    }));
+  };
 
   return (
     <>
@@ -318,18 +424,116 @@ const VisorPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Tabla de propiedades: por ahora son valores fijos/vacíos, el backend
+                      todavía no lee los metadatos EXIF/FLIR reales de cada imagen */}
+                  <h5 className="visor-panel-subtitulo">{t('visor.propiedades.titulo')}</h5>
+                  <table className="tabla-propiedades">
+                    <tbody>
+                      <tr>
+                        <th>{t('visor.propiedades.modelo')}</th>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <th>{t('visor.propiedades.numeroSerie')}</th>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <th>{t('visor.propiedades.distanciaFocal')}</th>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <th>{t('visor.propiedades.apertura')}</th>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <th>{t('visor.propiedades.ancho')}</th>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <th>{t('visor.propiedades.alto')}</th>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <th>{t('visor.propiedades.creado')}</th>
+                        <td>{new Date(imagenActiva.fecha).toLocaleString()}</td>
+                      </tr>
+                      <tr>
+                        <th>{t('visor.propiedades.modificado')}</th>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <th>{t('visor.propiedades.coordenadas')}</th>
+                        <td>—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  {/* Tabla editable: notas libres clave/valor que el usuario puede agregar */}
+                  <div className="tabla-editable-header">
+                    <h5 className="visor-panel-subtitulo">{t('visor.notas.titulo')}</h5>
+                    <button type="button" className="boton-agregar-fila" onClick={agregarFilaNota} title={t('visor.notas.agregar')}>
+                      <i className="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
+
+                  <table className="tabla-editable">
+                    <thead>
+                      <tr>
+                        <th>{t('visor.notas.clave')}</th>
+                        <th>{t('visor.notas.valor')}</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {notas.map((fila) => (
+                        <tr key={fila.id}>
+                          <td>
+                            <input
+                              type="text"
+                              value={fila.clave}
+                              onChange={(e) => actualizarFilaNota(fila.id, 'clave', e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              value={fila.valor}
+                              onChange={(e) => actualizarFilaNota(fila.id, 'valor', e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="boton-quitar-fila"
+                              onClick={() => eliminarFilaNota(fila.id)}
+                            >
+                              <i className="fa-solid fa-xmark"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {notas.length === 0 && (
+                        <tr>
+                          <td colSpan={3} className="texto-suave">
+                            {t('visor.notas.vacio')}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+
                   <div className="grupo-exportar">
-                    <button type="button" className="boton-exportar-visor" onClick={mostrarAvisoPendiente}>
+                    <button type="button" className="boton-exportar-visor" onClick={() => handleExportarReporte('PDF')}>
                       <i className="fa-solid fa-file-pdf"></i> {t('visor.exportarPdf')}
                     </button>
-                    <button type="button" className="boton-exportar-visor" onClick={mostrarAvisoPendiente}>
+                    <button type="button" className="boton-exportar-visor" onClick={() => handleExportarReporte('DOC')}>
                       <i className="fa-solid fa-file-word"></i> {t('visor.exportarDoc')}
                     </button>
                     <button type="button" className="boton-exportar-visor" onClick={handleExportarImagen}>
                       <i className="fa-solid fa-image"></i> {t('visor.exportarImagen')}
                     </button>
 
-                    {avisoPendiente && <p className="aviso-pendiente">{t('visor.pendienteBackend')}</p>}
+                    {avisoPendiente && <p className="aviso-pendiente">{t('visor.reporteRegistrado')}</p>}
                   </div>
                 </aside>
               )}

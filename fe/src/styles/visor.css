@@ -219,11 +219,12 @@
 }
 
 .visor-panel{
-    width: 260px;
+    width: 300px;
     flex-shrink: 0;
     background-color: var(--surface);
     border-left: 1px solid var(--border-soft);
     padding: 20px;
+    overflow-y: auto;
 }
 
 .visor-panel h4{
@@ -287,4 +288,117 @@
     background-color: #fff3d6;
     padding: 8px;
     border-radius: 6px;
+}
+
+/* ---- Panel del visor: propiedades y anotaciones editables ---- */
+
+.visor-panel-subtitulo{
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    font-weight: 700;
+}
+
+.tabla-propiedades{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 12px 0 20px;
+}
+
+.tabla-propiedades tr{
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.tabla-propiedades th{
+    text-align: left;
+    padding: 7px 0;
+    color: var(--text-muted);
+    font-weight: 600;
+    width: 55%;
+}
+
+.tabla-propiedades td{
+    padding: 7px 0;
+    color: var(--text-main);
+    text-align: right;
+}
+
+.tabla-editable-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 18px 0 8px;
+}
+
+.boton-agregar-fila{
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 6px;
+    background: var(--primary-soft);
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.boton-agregar-fila:hover{
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.tabla-editable{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.tabla-editable th{
+    text-align: left;
+    padding: 4px;
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.tabla-editable td{
+    padding: 2px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.tabla-editable input{
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 6px 4px;
+    font-size: 12px;
+    color: var(--text-main);
+    box-sizing: border-box;
+}
+
+.tabla-editable input:focus{
+    background: var(--primary-soft);
+    border-radius: 4px;
+    outline: none;
+}
+
+.boton-quitar-fila{
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border: none;
+    background: transparent;
+    color: #b3261e;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.boton-quitar-fila:hover{
+    background: #fde2e2;
+    border-radius: 4px;
 }

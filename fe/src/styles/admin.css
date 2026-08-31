@@ -80,3 +80,7 @@
     background-color: #fde2e2;
     color: #b3261e;
 }
+
+.panel-mis-reportes{
+    padding: 24px clamp(24px, 4vw, 56px);
+}

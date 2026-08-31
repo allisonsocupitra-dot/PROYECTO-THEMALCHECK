@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from src.core.config import settings
 
 def enviar_correo_recuperacion(destinatario: str):
-    enlace = f"{settings.FRONTEND_URL}/restablecer?correo={destinatario}"
+    enlace = f"{settings.FRONTEND_URL}/restablecer-contrasena?correo={destinatario}"
 
     mensaje = MIMEMultipart("alternative")
     mensaje["Subject"] = "Recuperación de contraseña - ThermalCheck"

@@ -98,6 +98,28 @@ export const traducciones: Record<string, Entrada> = {
   'dashboard.exportar': { es: 'Exportar reporte', en: 'Export report' },
   'dashboard.edicion': { es: 'Edición por lotes', en: 'Batch editing' },
   'dashboard.seleccionarTodo': { es: 'Seleccionar todo', en: 'Select all' },
+  'dashboard.deseleccionarTodo': { es: 'Deseleccionar todo', en: 'Deselect all' },
+
+  // Carpetas — eliminar
+  'carpetas.eliminarSeleccion': { es: 'Eliminar', en: 'Delete' },
+  'carpetas.eliminarImagen': { es: 'Eliminar imagen', en: 'Delete image' },
+  'carpetas.eliminarCarpeta': { es: 'Eliminar carpeta', en: 'Delete folder' },
+  'carpetas.confirmarEliminarImagen': { es: '¿Eliminar esta imagen?', en: 'Delete this image?' },
+  'carpetas.confirmarEliminarImagenes': {
+    es: '¿Eliminar las imágenes seleccionadas?',
+    en: 'Delete the selected images?',
+  },
+  'carpetas.confirmarEliminarCarpeta': {
+    es: '¿Eliminar esta carpeta y todo su contenido?',
+    en: 'Delete this folder and everything inside it?',
+  },
+
+  // Mis reportes
+  'nav.misReportes': { es: 'Mis reportes', en: 'My reports' },
+  'reportes.titulo': { es: 'Mis reportes', en: 'My reports' },
+  'reportes.vacio': { es: 'Aún no has generado ningún reporte.', en: "You haven't generated any reports yet." },
+  'reportes.carpeta': { es: 'Carpeta', en: 'Folder' },
+  'reportes.formato': { es: 'Formato', en: 'Format' },
 
   // Carga de imágenes
   'uploader.arrastra': { es: 'Arrastra tus imágenes termográficas aquí', en: 'Drag your thermal images here' },
@@ -128,6 +150,29 @@ export const traducciones: Record<string, Entrada> = {
   'visor.herramienta.linea': { es: 'Línea', en: 'Line' },
   'visor.herramienta.color': { es: 'Color de las formas', en: 'Shape color' },
   'visor.herramienta.borrarTodo': { es: 'Borrar todas las marcas', en: 'Clear all marks' },
+  'visor.reporteRegistrado': {
+    es: 'Se agregó a "Mis reportes". La generación real del archivo llegará con el backend.',
+    en: 'Added to "My reports". Actual file generation will come with the backend.',
+  },
+
+  // Panel del visor — tabla de propiedades (valores reales pendientes de backend)
+  'visor.propiedades.titulo': { es: 'Propiedades', en: 'Properties' },
+  'visor.propiedades.modelo': { es: 'Modelo', en: 'Model' },
+  'visor.propiedades.numeroSerie': { es: 'Número de serie', en: 'Serial number' },
+  'visor.propiedades.distanciaFocal': { es: 'Distancia focal', en: 'Focal length' },
+  'visor.propiedades.apertura': { es: 'Apertura', en: 'Aperture' },
+  'visor.propiedades.ancho': { es: 'Ancho', en: 'Width' },
+  'visor.propiedades.alto': { es: 'Alto', en: 'Height' },
+  'visor.propiedades.creado': { es: 'Creado', en: 'Created' },
+  'visor.propiedades.modificado': { es: 'Modificado', en: 'Modified' },
+  'visor.propiedades.coordenadas': { es: 'Coordenadas', en: 'Coordinates' },
+
+  // Panel del visor — tabla editable de anotaciones propias
+  'visor.notas.titulo': { es: 'Anotaciones', en: 'Annotations' },
+  'visor.notas.clave': { es: 'Clave', en: 'Key' },
+  'visor.notas.valor': { es: 'Valor', en: 'Value' },
+  'visor.notas.agregar': { es: 'Agregar fila', en: 'Add row' },
+  'visor.notas.vacio': { es: 'Sin anotaciones todavía', en: 'No annotations yet' },
 
   // Modal de ajustes
   'ajustes.idioma.titulo': { es: 'Idioma', en: 'Language' },

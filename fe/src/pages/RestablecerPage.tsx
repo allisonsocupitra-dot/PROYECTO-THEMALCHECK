@@ -8,12 +8,12 @@ import '../styles/styles.css';
 import '../styles/login.css';
 
 // Esta página se abre desde el enlace que llega al correo:
-// {URL_FRONTEND}/restablecer-contrasena?token=XXXX
+// {URL_FRONTEND}/restablecer?correo=XXXX
 const RestablecerPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [parametros] = useSearchParams();
-  const token = parametros.get('token') ?? '';
+  const correo = parametros.get('correo') ?? '';
 
   const [nuevaContrasena, setNuevaContrasena] = useState('');
   const [confirmacion, setConfirmacion] = useState('');
@@ -25,7 +25,7 @@ const RestablecerPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!token) {
+    if (!correo) {
       setError(t('recuperar.tokenInvalido'));
       return;
     }
@@ -37,10 +37,11 @@ const RestablecerPage: React.FC = () => {
 
     setCargando(true);
     try {
-      await restablecerContrasena(token, nuevaContrasena);
+      await restablecerContrasena(correo, nuevaContrasena);
       setMostrarConfirmacion(true);
-    } catch {
-      setError(t('recuperar.tokenInvalido'));
+    } catch (err: any) {
+      // El backend filtra si el correo existe en la BD y devuelve el mensaje aquí
+      setError(err.message || t('recuperar.tokenInvalido'));
     } finally {
       setCargando(false);
     }
@@ -58,7 +59,7 @@ const RestablecerPage: React.FC = () => {
 
       <div className="login">
         <div className="login-container titleThemalCheck slide-up">
-          {!token && <p className="mensaje-error">{t('recuperar.tokenInvalido')}</p>}
+          {!correo && <p className="mensaje-error">{t('recuperar.tokenInvalido')}</p>}
 
           <form onSubmit={handleSubmit}>
             <h2>{t('recuperar.restablecerTitulo')}</h2>
@@ -87,7 +88,7 @@ const RestablecerPage: React.FC = () => {
               />
             </div>
 
-            <button type="submit" disabled={cargando || !token}>
+            <button type="submit" disabled={cargando || !correo}>
               {cargando ? <span className="loader"></span> : t('recuperar.restablecerBoton')}
             </button>
           </form>

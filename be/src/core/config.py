@@ -14,6 +14,14 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
+    # --- Recuperación de contraseña ---
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    FRONTEND_URL: str = "http://localhost:5173"
+    TOKEN_EXPIRACION_MINUTOS: int = 30
+
     class Config:
         env_file = ".env"
 

@@ -12,18 +12,21 @@ const RecuperarPage: React.FC = () => {
   const [correo, setCorreo] = useState('');
   const [cargando, setCargando] = useState(false);
   const [enviado, setEnviado] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setCargando(true);
+    setError('');
 
     try {
       await solicitarRecuperacion(correo);
-    } catch {
-      // No distinguimos el error al usuario: por seguridad, nunca revelamos si el correo existe o no
+      setEnviado(true);
+    } catch (err: any) {
+      // El backend filtra si el correo existe en la BD y devuelve el mensaje aquí
+      setError(err.message || 'No se pudo procesar la solicitud.');
     } finally {
       setCargando(false);
-      setEnviado(true);
     }
   };
 
@@ -64,6 +67,8 @@ const RecuperarPage: React.FC = () => {
                   required
                 />
               </div>
+
+              {error && <p className="texto-error texto-centrado">{error}</p>}
 
               <button type="submit" disabled={cargando}>
                 {cargando ? <span className="loader"></span> : t('recuperar.boton')}

@@ -5,6 +5,9 @@ import { useLanguage } from '../context/LanguageContext';
 import { useGaleria } from '../context/GaleriaContext';
 import NavLateral from '../components/NavLateral';
 import ImageUploader from '../components/ImageUploader';
+import ArbolCarpetas from '../components/ArbolCarpetas';
+import { TablaParametros, TablaInfoImagen } from '../components/TablasPropiedades';
+import { buscarAncestros, buscarCarpetaPorId, buscarRutaCarpeta } from '../utils/arbolCarpetas';
 import '../styles/styles.css';
 import '../styles/dashboard.css';
 
@@ -21,9 +24,10 @@ const DashboardPage: React.FC = () => {
   const {
     carpetas,
     carpetaActivaId,
-    crearCarpeta,
     seleccionarCarpeta,
     agregarImagenes,
+    cargarCarpetaDesdeArchivos,
+    imagenSeleccionadaId,
     seleccionarImagen,
     eliminarImagenes,
     eliminarCarpeta,
@@ -31,16 +35,38 @@ const DashboardPage: React.FC = () => {
 
   const inputCarpetaRef = useRef<HTMLInputElement>(null);
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
+  const [expandidas, setExpandidas] = useState<Set<string>>(new Set());
 
   const carpetaActiva = useMemo(
-    () => carpetas.find((c) => c.id === carpetaActivaId) ?? carpetas[0],
+    () => buscarCarpetaPorId(carpetas, carpetaActivaId) ?? carpetas[0],
     [carpetas, carpetaActivaId]
   );
 
-  // La selección es por carpeta: si cambias de carpeta o se borran imágenes, se limpia
+  const rutaCarpetaActiva = useMemo(
+    () => buscarRutaCarpeta(carpetas, carpetaActiva.id) ?? [carpetaActiva.nombre],
+    [carpetas, carpetaActiva]
+  );
+
+  // La imagen mostrada en el panel derecho: la seleccionada globalmente, si
+  // pertenece a la carpeta que se está viendo ahora mismo.
+  const imagenPanel = useMemo(
+    () => carpetaActiva.imagenes.find((img) => img.id === imagenSeleccionadaId) ?? null,
+    [carpetaActiva, imagenSeleccionadaId]
+  );
+
+  // La selección (checkboxes) es por carpeta: si cambias de carpeta o se borran imágenes, se limpia
   useEffect(() => {
     setSeleccionadas(new Set());
   }, [carpetaActivaId]);
+
+  // Al activar una carpeta, nos aseguramos de que todos sus ancestros estén
+  // expandidos en el árbol, para que quede visible dentro de "Mis carpetas".
+  useEffect(() => {
+    const ancestros = buscarAncestros(carpetas, carpetaActivaId);
+    if (ancestros && ancestros.length > 0) {
+      setExpandidas((prev) => new Set([...prev, ...ancestros]));
+    }
+  }, [carpetas, carpetaActivaId]);
 
   const todasSeleccionadas =
     carpetaActiva.imagenes.length > 0 && carpetaActiva.imagenes.every((img) => seleccionadas.has(img.id));
@@ -55,6 +81,15 @@ const DashboardPage: React.FC = () => {
 
   const alternarSeleccionImagen = (id: string) => {
     setSeleccionadas((prev) => {
+      const nuevo = new Set(prev);
+      if (nuevo.has(id)) nuevo.delete(id);
+      else nuevo.add(id);
+      return nuevo;
+    });
+  };
+
+  const alternarExpandir = (id: string) => {
+    setExpandidas((prev) => {
       const nuevo = new Set(prev);
       if (nuevo.has(id)) nuevo.delete(id);
       else nuevo.add(id);
@@ -80,28 +115,25 @@ const DashboardPage: React.FC = () => {
     eliminarCarpeta(id);
   };
 
-  // Reemplaza a "crear carpeta": abre el selector de carpetas del computador,
-  // crea una carpeta con el mismo nombre y le carga todas las imágenes que encuentre dentro
+  // Abre el selector de carpetas del computador. Si dentro trae subcarpetas
+  // con imágenes, se reconstruye ese mismo árbol en "Mis carpetas".
   const handleCargarCarpeta = (e: React.ChangeEvent<HTMLInputElement>) => {
     const archivos = e.target.files;
     if (!archivos || archivos.length === 0) return;
 
-    const validos = Array.from(archivos).filter((a) => a.type.startsWith('image/'));
-    if (validos.length === 0) return;
-
-    const primerArchivo = validos[0] as File & { webkitRelativePath?: string };
-    const nombreCarpeta = primerArchivo.webkitRelativePath
-      ? primerArchivo.webkitRelativePath.split('/')[0]
-      : t('carpetas.nombrePorDefecto');
-
-    const idNuevaCarpeta = crearCarpeta(nombreCarpeta);
-    agregarImagenes(idNuevaCarpeta, validos);
+    cargarCarpetaDesdeArchivos(Array.from(archivos), t('carpetas.nombrePorDefecto'));
 
     if (inputCarpetaRef.current) inputCarpetaRef.current.value = '';
   };
 
   const handleArchivos = (archivos: File[]) => {
     agregarImagenes(carpetaActiva.id, archivos);
+  };
+
+  // Un clic normal en la miniatura solo la selecciona y muestra su
+  // información en el panel derecho; abrir el editor es una acción aparte.
+  const handleSeleccionarImagen = (imagenId: string) => {
+    seleccionarImagen(imagenId);
   };
 
   const handleAbrirImagen = (imagenId: string) => {
@@ -158,39 +190,23 @@ const DashboardPage: React.FC = () => {
                 <ImageUploader onArchivosSeleccionados={handleArchivos} />
               </div>
 
-              <ul className="lista-carpetas-items">
-                {carpetas.map((c) => (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      className={c.id === carpetaActivaId ? 'item-carpeta item-carpeta-activa' : 'item-carpeta'}
-                      onClick={() => seleccionarCarpeta(c.id)}
-                    >
-                      <i className="fa-solid fa-folder"></i>
-                      <span>{c.nombre}</span>
-                      <span className="item-carpeta-contador">{c.imagenes.length}</span>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        className="boton-eliminar-carpeta"
-                        title={t('carpetas.eliminarCarpeta')}
-                        onClick={(e) => handleEliminarCarpeta(e, c.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') handleEliminarCarpeta(e as unknown as React.MouseEvent, c.id);
-                        }}
-                      >
-                        <i className="fa-solid fa-xmark"></i>
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <h5 className="visor-panel-subtitulo titulo-mis-carpetas">{t('carpetas.miscarpetas')}</h5>
+
+              <ArbolCarpetas
+                carpetas={carpetas}
+                carpetaActivaId={carpetaActivaId}
+                expandidas={expandidas}
+                onSeleccionar={seleccionarCarpeta}
+                onAlternarExpandir={alternarExpandir}
+                onEliminar={handleEliminarCarpeta}
+                tituloEliminar={t('carpetas.eliminarCarpeta')}
+              />
             </aside>
 
             <div className="contenido-carpeta">
               <div className="breadcrumb-carpeta">
                 <i className="fa-solid fa-folder-open"></i>
-                <span>{carpetaActiva.nombre}</span>
+                <span>{rutaCarpetaActiva.join(' / ')}</span>
                 <span className="texto-suave">
                   — {carpetaActiva.imagenes.length} {t('carpetas.items')}
                 </span>
@@ -199,7 +215,12 @@ const DashboardPage: React.FC = () => {
               {carpetaActiva.imagenes.length > 0 && (
                 <section className="miniaturas-grid">
                   {carpetaActiva.imagenes.map((img) => (
-                    <div className={seleccionadas.has(img.id) ? 'miniatura miniatura-seleccionada' : 'miniatura'} key={img.id}>
+                    <div
+                      className={
+                        img.id === imagenSeleccionadaId ? 'miniatura miniatura-vista' : 'miniatura'
+                      }
+                      key={img.id}
+                    >
                       <label className="casilla-miniatura" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
@@ -220,7 +241,24 @@ const DashboardPage: React.FC = () => {
                         <i className="fa-solid fa-trash"></i>
                       </button>
 
-                      <button type="button" className="area-clic-miniatura" onClick={() => handleAbrirImagen(img.id)}>
+                      <button
+                        type="button"
+                        className="boton-abrir-imagen"
+                        title={t('carpetas.abrirEnVisor')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAbrirImagen(img.id);
+                        }}
+                      >
+                        <i className="fa-solid fa-expand"></i>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="area-clic-miniatura"
+                        onClick={() => handleSeleccionarImagen(img.id)}
+                        onDoubleClick={() => handleAbrirImagen(img.id)}
+                      >
                         <img src={img.urlPrevia} alt={img.archivo.name} />
                         <p className="nombre-imagen">{img.archivo.name}</p>
                       </button>
@@ -229,6 +267,31 @@ const DashboardPage: React.FC = () => {
                 </section>
               )}
             </div>
+
+            <aside className="panel-info-imagen">
+              {imagenPanel ? (
+                <>
+                  <div className="preview-imagen-panel">
+                    <img src={imagenPanel.urlPrevia} alt={imagenPanel.archivo.name} />
+                  </div>
+                  <h4 className="nombre-imagen-panel">{imagenPanel.archivo.name}</h4>
+                  <p className="texto-suave">{new Date(imagenPanel.fecha).toLocaleString()}</p>
+
+                  <TablaParametros imagen={imagenPanel} />
+                  <TablaInfoImagen imagen={imagenPanel} />
+
+                  <button
+                    type="button"
+                    className="boton-exportar-visor"
+                    onClick={() => handleAbrirImagen(imagenPanel.id)}
+                  >
+                    <i className="fa-solid fa-expand"></i> {t('carpetas.abrirEnVisor')}
+                  </button>
+                </>
+              ) : (
+                <p className="texto-suave mensaje-panel-vacio">{t('carpetas.panel.sinSeleccion')}</p>
+              )}
+            </aside>
           </section>
         </div>
       </div>

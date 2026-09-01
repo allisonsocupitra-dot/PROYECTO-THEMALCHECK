@@ -61,6 +61,24 @@
 .boton-eliminar-carpeta:hover { background: #fde2e2; color: #b3261e; }
 .item-carpeta-contador + .boton-eliminar-carpeta { margin-left: 6px; }
 
+/* ---- Árbol de carpetas (subcarpetas anidadas) ---- */
+.titulo-mis-carpetas { margin: 4px 4px 8px; }
+.chevron-carpeta { width: 14px; height: 14px; flex-shrink: 0; display: grid; place-items: center; font-size: 9px; color: var(--text-muted); border-radius: 3px; }
+.chevron-carpeta:hover { background: rgba(0,0,0,.06); }
+.chevron-carpeta-oculto { visibility: hidden; }
+.nombre-carpeta-arbol { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Panel derecho: información de la imagen seleccionada ---- */
+.panel-info-imagen { width: 300px; flex-shrink: 0; background-color: var(--surface); border-left: 1px solid var(--border-soft); padding: 20px; overflow-y: auto; }
+.preview-imagen-panel { width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: #111; margin-bottom: 12px; }
+.preview-imagen-panel img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.nombre-imagen-panel { font-size: 14px; color: #333; margin-bottom: 2px; word-break: break-word; }
+.mensaje-panel-vacio { padding: 60px 12px; text-align: center; }
+.miniatura-vista { border-color: var(--primary-color); box-shadow: 0 0 0 2px var(--primary-color); }
+.boton-abrir-imagen { position: absolute; bottom: 8px; right: 8px; z-index: 2; width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 6px; background: rgba(255,255,255,.9); color: var(--primary-color); cursor: pointer; font-size: 11px; box-shadow: var(--shadow-soft); opacity: 0; transition: opacity .15s ease; }
+.miniatura:hover .boton-abrir-imagen { opacity: 1; }
+.boton-abrir-imagen:hover { background: var(--primary-color); color: #fff; }
+
 .contenido-carpeta { flex: 1; min-width: 0; overflow-y: auto; }
 .breadcrumb-carpeta { display: flex; align-items: center; gap: 9px; padding: 30px clamp(24px, 4vw, 56px) 0; color: var(--text-main); font-size: 14px; font-weight: 800; }
 .breadcrumb-carpeta .texto-suave { font-weight: 400; }
@@ -89,4 +107,5 @@
     .boton-seleccion { min-width: 90px; padding: 9px 10px; }
     .breadcrumb-carpeta { padding-left: 20px; padding-right: 20px; }
     .miniaturas-grid { padding-left: 20px; padding-right: 20px; }
+    .panel-info-imagen { display: none; }
 }

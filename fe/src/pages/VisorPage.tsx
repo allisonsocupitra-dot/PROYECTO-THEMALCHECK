@@ -1,14 +1,16 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useGaleria } from '../context/GaleriaContext';
 import NavLateral from '../components/NavLateral';
+import { TablaParametros, TablaInfoImagen } from '../components/TablasPropiedades';
+import { aplanarImagenes } from '../utils/arbolCarpetas';
 import { formatearTemperatura } from '../utils/temperaturas';
 import '../styles/styles.css';
 import '../styles/dashboard.css';
 import '../styles/visor.css';
 
-type Herramienta = 'ninguna' | 'punto' | 'rectangulo' | 'circulo' | 'linea';
+type Herramienta = 'ninguna' | 'punto' | 'rectangulo' | 'circulo';
 
 interface Anotacion {
   id: string;
@@ -38,12 +40,32 @@ const dibujarAnotacionEnCanvas = (ctx: CanvasRenderingContext2D, a: Anotacion, a
   ctx.fillStyle = a.color;
 
   if (a.tipo === 'punto') {
+    const cx = px(a.xInicio);
+    const cy = py(a.yInicio);
+    const radio = Math.max(6, ancho * 0.012);
+    const hueco = radio * 0.55;
+    const largoTick = radio * 1.6;
+
+    ctx.lineWidth = Math.max(1.5, ancho * 0.0022);
     ctx.beginPath();
-    ctx.arc(px(a.xInicio), py(a.yInicio), Math.max(4, ancho * 0.01), 0, Math.PI * 2);
-    ctx.fill();
-    ctx.lineWidth = grosor / 2;
-    ctx.strokeStyle = '#ffffff';
+    ctx.arc(cx, cy, radio, 0, Math.PI * 2);
     ctx.stroke();
+
+    [
+      [cx - largoTick, cy, cx - hueco, cy],
+      [cx + hueco, cy, cx + largoTick, cy],
+      [cx, cy - largoTick, cx, cy - hueco],
+      [cx, cy + hueco, cx, cy + largoTick],
+    ].forEach(([x1, y1, x2, y2]) => {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    });
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.max(1.5, radio * 0.18), 0, Math.PI * 2);
+    ctx.fill();
     return;
   }
 
@@ -60,20 +82,12 @@ const dibujarAnotacionEnCanvas = (ctx: CanvasRenderingContext2D, a: Anotacion, a
     return;
   }
 
-  if (a.tipo === 'circulo') {
-    ctx.beginPath();
-    ctx.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-    ctx.globalAlpha = 0.15;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.stroke();
-    return;
-  }
-
-  // línea
+  // círculo
   ctx.beginPath();
-  ctx.moveTo(px(a.xInicio), py(a.yInicio));
-  ctx.lineTo(px(a.xFin), py(a.yFin));
+  ctx.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+  ctx.globalAlpha = 0.15;
+  ctx.fill();
+  ctx.globalAlpha = 1;
   ctx.stroke();
 };
 
@@ -83,6 +97,8 @@ const VisorPage: React.FC = () => {
   const { carpetas, imagenSeleccionadaId, seleccionarImagen, registrarReporte } = useGaleria();
   const [avisoPendiente, setAvisoPendiente] = useState(false);
 
+  const [edicionActiva, setEdicionActiva] = useState(false);
+  const [menuExportarAbierto, setMenuExportarAbierto] = useState(false);
   const [herramienta, setHerramienta] = useState<Herramienta>('ninguna');
   const [colorSeleccionado, setColorSeleccionado] = useState('#39d353');
   const [anotacionesPorImagen, setAnotacionesPorImagen] = useState<Record<string, Anotacion[]>>({});
@@ -90,12 +106,11 @@ const VisorPage: React.FC = () => {
   const [notasPorImagen, setNotasPorImagen] = useState<Record<string, FilaEditable[]>>({});
   const contadorRef = useRef(0);
   const inputColorRef = useRef<HTMLInputElement>(null);
+  const contenedorImagenRef = useRef<HTMLDivElement>(null);
 
-  // Aplanamos todas las carpetas para tener una sola lista de imágenes cargadas
-  const todasLasImagenes = useMemo(
-    () => carpetas.flatMap((c) => c.imagenes.map((img) => ({ ...img, carpeta: c.nombre }))),
-    [carpetas]
-  );
+  // Aplanamos todo el árbol de carpetas (incluidas las subcarpetas) para tener
+  // una sola lista de imágenes cargadas, con la ruta completa de cada una.
+  const todasLasImagenes = useMemo(() => aplanarImagenes(carpetas), [carpetas]);
 
   const imagenActiva = useMemo(() => {
     if (imagenSeleccionadaId) {
@@ -108,10 +123,24 @@ const VisorPage: React.FC = () => {
   const anotaciones = imagenActiva ? anotacionesPorImagen[imagenActiva.id] ?? [] : [];
   const notas = imagenActiva ? notasPorImagen[imagenActiva.id] ?? [] : [];
 
+  // Numera únicamente los puntos termográficos (SP1, SP2, ...), en el orden en que se agregaron
+  const numerosPunto = useMemo(() => {
+    const mapa = new Map<string, number>();
+    let contador = 0;
+    anotaciones.forEach((a) => {
+      if (a.tipo === 'punto') {
+        contador += 1;
+        mapa.set(a.id, contador);
+      }
+    });
+    return mapa;
+  }, [anotaciones]);
+
   // Compone la imagen original + las figuras marcadas en un canvas y descarga el resultado,
   // así las anotaciones quedan fijas en el archivo exportado
   const handleExportarImagen = () => {
     if (!imagenActiva) return;
+    setMenuExportarAbierto(false);
 
     const img = new Image();
     img.onload = () => {
@@ -140,6 +169,7 @@ const VisorPage: React.FC = () => {
 
   const handleExportarReporte = (formato: 'PDF' | 'DOC') => {
     if (!imagenActiva) return;
+    setMenuExportarAbierto(false);
     registrarReporte(imagenActiva.archivo.name, imagenActiva.carpeta, formato);
     setAvisoPendiente(true);
     window.setTimeout(() => setAvisoPendiente(false), 3000);
@@ -147,10 +177,12 @@ const VisorPage: React.FC = () => {
 
   // Todas las coordenadas se guardan en % relativos a la imagen renderizada,
   // así el dibujo se mantiene alineado sin importar el tamaño de pantalla
-  const obtenerPosicionRelativa = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100));
+  const obtenerPosicionRelativa = (clientX: number, clientY: number) => {
+    const el = contenedorImagenRef.current;
+    if (!el) return { x: 0, y: 0 };
+    const rect = el.getBoundingClientRect();
+    const x = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
+    const y = Math.min(100, Math.max(0, ((clientY - rect.top) / rect.height) * 100));
     return { x, y };
   };
 
@@ -169,7 +201,7 @@ const VisorPage: React.FC = () => {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (herramienta === 'ninguna' || !imagenActiva) return;
-    const { x, y } = obtenerPosicionRelativa(e);
+    const { x, y } = obtenerPosicionRelativa(e.clientX, e.clientY);
     contadorRef.current += 1;
 
     if (herramienta === 'punto') {
@@ -196,28 +228,70 @@ const VisorPage: React.FC = () => {
     });
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Mientras se arrastra, escuchamos el mousemove/mouseup en toda la ventana
+  // (no solo dentro del recuadro de la imagen). Antes, si el cursor salía del
+  // contenedor mientras se dibujaba, la figura se cancelaba sin guardarse;
+  // ahora el trazo se sigue viendo y se confirma con soltar el clic en cualquier parte.
+  useEffect(() => {
     if (!dibujando) return;
-    const { x, y } = obtenerPosicionRelativa(e);
-    setDibujando({ ...dibujando, xFin: x, yFin: y });
-  };
 
-  const finalizarDibujo = () => {
-    if (!dibujando) return;
-    agregarAnotacion(dibujando);
-    setDibujando(null);
-  };
+    const handleMove = (e: MouseEvent) => {
+      const { x, y } = obtenerPosicionRelativa(e.clientX, e.clientY);
+      setDibujando((prev) => (prev ? { ...prev, xFin: x, yFin: y } : prev));
+    };
 
-  // Dibuja únicamente la forma elegida, con el color elegido; no hay ninguna temperatura asociada
+    const handleUp = () => {
+      setDibujando((prev) => {
+        if (prev) agregarAnotacion(prev);
+        return null;
+      });
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+    // Solo nos interesa reaccionar a cuándo empieza/termina un trazo, no a cada
+    // actualización de sus coordenadas mientras se arrastra.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dibujando !== null]);
+
+  // Dibuja la forma elegida, con el color elegido; el punto se ve como una
+  // mira termográfica (círculo + marcas en cruz) con su etiqueta SP#
   const renderAnotacion = (a: Anotacion) => {
+    if (a.tipo === 'punto') {
+      const numero = numerosPunto.get(a.id);
+      return (
+        <g key={a.id}>
+          <circle cx={a.xInicio} cy={a.yInicio} r="1.6" fill="none" stroke={a.color} strokeWidth="0.35" />
+          <line x1={a.xInicio - 2.6} y1={a.yInicio} x2={a.xInicio - 1.1} y2={a.yInicio} stroke={a.color} strokeWidth="0.35" />
+          <line x1={a.xInicio + 1.1} y1={a.yInicio} x2={a.xInicio + 2.6} y2={a.yInicio} stroke={a.color} strokeWidth="0.35" />
+          <line x1={a.xInicio} y1={a.yInicio - 2.6} x2={a.xInicio} y2={a.yInicio - 1.1} stroke={a.color} strokeWidth="0.35" />
+          <line x1={a.xInicio} y1={a.yInicio + 1.1} x2={a.xInicio} y2={a.yInicio + 2.6} stroke={a.color} strokeWidth="0.35" />
+          <circle cx={a.xInicio} cy={a.yInicio} r="0.4" fill={a.color} />
+          {numero && (
+            <text
+              x={a.xInicio + 2.1}
+              y={a.yInicio - 1.9}
+              fontSize="2.4"
+              fill={a.color}
+              stroke="#000"
+              strokeWidth="0.12"
+              paintOrder="stroke"
+            >
+              {`SP${numero}`}
+            </text>
+          )}
+        </g>
+      );
+    }
+
     const x1 = Math.min(a.xInicio, a.xFin);
     const y1 = Math.min(a.yInicio, a.yFin);
     const ancho = Math.abs(a.xFin - a.xInicio);
     const alto = Math.abs(a.yFin - a.yInicio);
-
-    if (a.tipo === 'punto') {
-      return <circle key={a.id} cx={a.xInicio} cy={a.yInicio} r="1.1" fill={a.color} stroke="#fff" strokeWidth="0.3" />;
-    }
 
     if (a.tipo === 'rectangulo') {
       return (
@@ -234,29 +308,33 @@ const VisorPage: React.FC = () => {
       );
     }
 
-    if (a.tipo === 'circulo') {
-      return (
-        <ellipse
-          key={a.id}
-          cx={x1 + ancho / 2}
-          cy={y1 + alto / 2}
-          rx={ancho / 2}
-          ry={alto / 2}
-          className="forma-anotacion"
-          stroke={a.color}
-          fill={a.color}
-        />
-      );
-    }
-
-    // línea
-    return <line key={a.id} x1={a.xInicio} y1={a.yInicio} x2={a.xFin} y2={a.yFin} stroke={a.color} strokeWidth="0.5" />;
+    // círculo
+    return (
+      <ellipse
+        key={a.id}
+        cx={x1 + ancho / 2}
+        cy={y1 + alto / 2}
+        rx={ancho / 2}
+        ry={alto / 2}
+        className="forma-anotacion"
+        stroke={a.color}
+        fill={a.color}
+      />
+    );
   };
 
   const esHerramientaActiva = (h: Herramienta) =>
     herramienta === h ? 'boton-herramienta boton-herramienta-activa' : 'boton-herramienta';
 
-  // Tabla editable de anotaciones (clave/valor), independiente por imagen
+  const alternarEdicion = () => {
+    setEdicionActiva((prev) => {
+      if (prev) setHerramienta('ninguna'); // al cerrar la barra, se sale del modo dibujo
+      return !prev;
+    });
+    setMenuExportarAbierto(false);
+  };
+
+  // Tabla editable de observaciones (Remarks), independiente por imagen
   const agregarFilaNota = () => {
     if (!imagenActiva) return;
     const nueva: FilaEditable = { id: `nota-${Date.now()}`, clave: '', valor: '' };
@@ -311,95 +389,145 @@ const VisorPage: React.FC = () => {
 
                 {imagenActiva ? (
                   <div className="area-edicion-visor">
-                    <aside className="barra-herramientas-visor">
-                      <button
-                        type="button"
-                        className={esHerramientaActiva('ninguna')}
-                        title={t('visor.herramienta.seleccionar')}
-                        onClick={() => setHerramienta('ninguna')}
-                      >
-                        <i className="fa-solid fa-arrow-pointer"></i>
-                      </button>
-                      <button
-                        type="button"
-                        className={esHerramientaActiva('punto')}
-                        title={t('visor.herramienta.punto')}
-                        onClick={() => setHerramienta('punto')}
-                      >
-                        <i className="fa-solid fa-crosshairs"></i>
-                      </button>
-                      <button
-                        type="button"
-                        className={esHerramientaActiva('rectangulo')}
-                        title={t('visor.herramienta.rectangulo')}
-                        onClick={() => setHerramienta('rectangulo')}
-                      >
-                        <i className="fa-regular fa-square"></i>
-                      </button>
-                      <button
-                        type="button"
-                        className={esHerramientaActiva('circulo')}
-                        title={t('visor.herramienta.circulo')}
-                        onClick={() => setHerramienta('circulo')}
-                      >
-                        <i className="fa-regular fa-circle"></i>
-                      </button>
-                      <button
-                        type="button"
-                        className={esHerramientaActiva('linea')}
-                        title={t('visor.herramienta.linea')}
-                        onClick={() => setHerramienta('linea')}
-                      >
-                        <i className="fa-solid fa-slash"></i>
-                      </button>
-
-                      <button
-                        type="button"
-                        className="boton-herramienta boton-color"
-                        title={t('visor.herramienta.color')}
-                        onClick={() => inputColorRef.current?.click()}
-                      >
-                        <i className="fa-solid fa-palette"></i>
-                        <span className="muestra-color" style={{ backgroundColor: colorSeleccionado }}></span>
-                      </button>
-                      <input
-                        ref={inputColorRef}
-                        type="color"
-                        value={colorSeleccionado}
-                        onChange={(e) => setColorSeleccionado(e.target.value)}
-                        className="input-color-oculto"
-                      />
-
-                      <button
-                        type="button"
-                        className="boton-herramienta boton-herramienta-borrar"
-                        title={t('visor.herramienta.borrarTodo')}
-                        onClick={borrarAnotaciones}
-                      >
-                        <i className="fa-solid fa-broom"></i>
-                      </button>
-                    </aside>
-
-                    <div className="contenedor-imagen-visor">
-                      <div
-                        className={`lienzo-imagen-visor ${herramienta !== 'ninguna' ? 'lienzo-dibujando' : ''}`}
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={finalizarDibujo}
-                        onMouseLeave={() => setDibujando(null)}
-                      >
-                        <img src={imagenActiva.urlPrevia} alt={imagenActiva.archivo.name} />
-
-                        <svg className="capa-anotaciones" viewBox="0 0 100 100" preserveAspectRatio="none">
-                          {anotaciones.map((a) => renderAnotacion(a))}
-                          {dibujando && renderAnotacion(dibujando)}
-                        </svg>
+                    {/* Barra superior: nombre + fecha, borrar mediciones, editar y exportar */}
+                    <div className="barra-superior-visor">
+                      <div className="barra-superior-info">
+                        <span className="barra-superior-nombre">{imagenActiva.archivo.name}</span>
+                        <span className="texto-suave">{new Date(imagenActiva.fecha).toLocaleString()}</span>
                       </div>
 
-                      <div className="barra-temperatura">
-                        <span className="temp-max">{formatearTemperatura(imagenActiva.temperaturaMax)}°C</span>
-                        <div className="gradiente-temperatura"></div>
-                        <span className="temp-min">{formatearTemperatura(imagenActiva.temperaturaMin)}°C</span>
+                      <div className="barra-superior-acciones">
+                        <button
+                          type="button"
+                          className="boton-superior-visor"
+                          title={t('visor.limpiarTodo')}
+                          onClick={borrarAnotaciones}
+                        >
+                          <i className="fa-solid fa-broom"></i> {t('visor.limpiarTodo')}
+                        </button>
+
+                        <button
+                          type="button"
+                          className={edicionActiva ? 'boton-superior-visor boton-superior-activo' : 'boton-superior-visor'}
+                          title={t('visor.editar')}
+                          onClick={alternarEdicion}
+                        >
+                          <i className="fa-solid fa-pen"></i> {t('visor.editar')}
+                        </button>
+
+                        <div className="menu-exportar-visor">
+                          <button
+                            type="button"
+                            className="boton-superior-visor"
+                            title={t('visor.exportar')}
+                            onClick={() => setMenuExportarAbierto((prev) => !prev)}
+                          >
+                            <i className="fa-solid fa-file-export"></i> {t('visor.exportar')}
+                            <i className="fa-solid fa-chevron-down menu-exportar-flecha"></i>
+                          </button>
+
+                          {menuExportarAbierto && (
+                            <div className="menu-exportar-opciones">
+                              <button type="button" onClick={() => handleExportarReporte('PDF')}>
+                                <i className="fa-solid fa-file-pdf"></i> {t('visor.exportarPdf')}
+                              </button>
+                              <button type="button" onClick={() => handleExportarReporte('DOC')}>
+                                <i className="fa-solid fa-file-word"></i> {t('visor.exportarDoc')}
+                              </button>
+                              <button type="button" onClick={handleExportarImagen}>
+                                <i className="fa-solid fa-image"></i> {t('visor.exportarImagen')}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {avisoPendiente && <p className="aviso-pendiente aviso-pendiente-superior">{t('visor.reporteRegistrado')}</p>}
+
+                    <div className="area-imagen-y-herramientas">
+                      {edicionActiva && (
+                        <aside className="barra-herramientas-visor">
+                          <button
+                            type="button"
+                            className={esHerramientaActiva('ninguna')}
+                            title={t('visor.herramienta.seleccionar')}
+                            onClick={() => setHerramienta('ninguna')}
+                          >
+                            <i className="fa-solid fa-arrow-pointer"></i>
+                          </button>
+                          <button
+                            type="button"
+                            className={esHerramientaActiva('punto')}
+                            title={t('visor.herramienta.punto')}
+                            onClick={() => setHerramienta('punto')}
+                          >
+                            <i className="fa-solid fa-crosshairs"></i>
+                          </button>
+                          <button
+                            type="button"
+                            className={esHerramientaActiva('rectangulo')}
+                            title={t('visor.herramienta.rectangulo')}
+                            onClick={() => setHerramienta('rectangulo')}
+                          >
+                            <i className="fa-regular fa-square"></i>
+                          </button>
+                          <button
+                            type="button"
+                            className={esHerramientaActiva('circulo')}
+                            title={t('visor.herramienta.circulo')}
+                            onClick={() => setHerramienta('circulo')}
+                          >
+                            <i className="fa-regular fa-circle"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="boton-herramienta boton-color"
+                            title={t('visor.herramienta.color')}
+                            onClick={() => inputColorRef.current?.click()}
+                          >
+                            <i className="fa-solid fa-palette"></i>
+                            <span className="muestra-color" style={{ backgroundColor: colorSeleccionado }}></span>
+                          </button>
+                          <input
+                            ref={inputColorRef}
+                            type="color"
+                            value={colorSeleccionado}
+                            onChange={(e) => setColorSeleccionado(e.target.value)}
+                            className="input-color-oculto"
+                          />
+
+                          <button
+                            type="button"
+                            className="boton-herramienta boton-herramienta-borrar"
+                            title={t('visor.herramienta.borrarTodo')}
+                            onClick={borrarAnotaciones}
+                          >
+                            <i className="fa-solid fa-broom"></i>
+                          </button>
+                        </aside>
+                      )}
+
+                      <div className="contenedor-imagen-visor">
+                        <div
+                          ref={contenedorImagenRef}
+                          className={`lienzo-imagen-visor ${herramienta !== 'ninguna' ? 'lienzo-dibujando' : ''}`}
+                          onMouseDown={handleMouseDown}
+                        >
+                          <img src={imagenActiva.urlPrevia} alt={imagenActiva.archivo.name} />
+
+                          <svg className="capa-anotaciones" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            {anotaciones.map((a) => renderAnotacion(a))}
+                            {dibujando && renderAnotacion(dibujando)}
+                          </svg>
+                        </div>
+
+                        <div className="barra-temperatura">
+                          <span className="temp-max">{formatearTemperatura(imagenActiva.temperaturaMax)}°C</span>
+                          <div className="gradiente-temperatura"></div>
+                          <span className="temp-min">{formatearTemperatura(imagenActiva.temperaturaMin)}°C</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -411,7 +539,7 @@ const VisorPage: React.FC = () => {
               {imagenActiva && (
                 <aside className="visor-panel">
                   <h4>{imagenActiva.archivo.name}</h4>
-                  <p className="texto-suave">{imagenActiva.carpeta}</p>
+                  <p className="texto-suave">{imagenActiva.rutaCompleta}</p>
 
                   <div className="info-imagen">
                     <div>
@@ -424,51 +552,12 @@ const VisorPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Tabla de propiedades: por ahora son valores fijos/vacíos, el backend
-                      todavía no lee los metadatos EXIF/FLIR reales de cada imagen */}
-                  <h5 className="visor-panel-subtitulo">{t('visor.propiedades.titulo')}</h5>
-                  <table className="tabla-propiedades">
-                    <tbody>
-                      <tr>
-                        <th>{t('visor.propiedades.modelo')}</th>
-                        <td>—</td>
-                      </tr>
-                      <tr>
-                        <th>{t('visor.propiedades.numeroSerie')}</th>
-                        <td>—</td>
-                      </tr>
-                      <tr>
-                        <th>{t('visor.propiedades.distanciaFocal')}</th>
-                        <td>—</td>
-                      </tr>
-                      <tr>
-                        <th>{t('visor.propiedades.apertura')}</th>
-                        <td>—</td>
-                      </tr>
-                      <tr>
-                        <th>{t('visor.propiedades.ancho')}</th>
-                        <td>—</td>
-                      </tr>
-                      <tr>
-                        <th>{t('visor.propiedades.alto')}</th>
-                        <td>—</td>
-                      </tr>
-                      <tr>
-                        <th>{t('visor.propiedades.creado')}</th>
-                        <td>{new Date(imagenActiva.fecha).toLocaleString()}</td>
-                      </tr>
-                      <tr>
-                        <th>{t('visor.propiedades.modificado')}</th>
-                        <td>—</td>
-                      </tr>
-                      <tr>
-                        <th>{t('visor.propiedades.coordenadas')}</th>
-                        <td>—</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  {/* Parameters e Image Info: la lectura real llegará con el
+                      backend de análisis; por ahora se muestran vacíos ("—") */}
+                  <TablaParametros imagen={imagenActiva} />
+                  <TablaInfoImagen imagen={imagenActiva} />
 
-                  {/* Tabla editable: notas libres clave/valor que el usuario puede agregar */}
+                  {/* Remarks: tabla editable clave/valor, independiente por imagen */}
                   <div className="tabla-editable-header">
                     <h5 className="visor-panel-subtitulo">{t('visor.notas.titulo')}</h5>
                     <button type="button" className="boton-agregar-fila" onClick={agregarFilaNota} title={t('visor.notas.agregar')}>
@@ -521,20 +610,6 @@ const VisorPage: React.FC = () => {
                       )}
                     </tbody>
                   </table>
-
-                  <div className="grupo-exportar">
-                    <button type="button" className="boton-exportar-visor" onClick={() => handleExportarReporte('PDF')}>
-                      <i className="fa-solid fa-file-pdf"></i> {t('visor.exportarPdf')}
-                    </button>
-                    <button type="button" className="boton-exportar-visor" onClick={() => handleExportarReporte('DOC')}>
-                      <i className="fa-solid fa-file-word"></i> {t('visor.exportarDoc')}
-                    </button>
-                    <button type="button" className="boton-exportar-visor" onClick={handleExportarImagen}>
-                      <i className="fa-solid fa-image"></i> {t('visor.exportarImagen')}
-                    </button>
-
-                    {avisoPendiente && <p className="aviso-pendiente">{t('visor.reporteRegistrado')}</p>}
-                  </div>
                 </aside>
               )}
             </div>

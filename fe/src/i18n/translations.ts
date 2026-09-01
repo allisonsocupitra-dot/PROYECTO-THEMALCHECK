@@ -113,6 +113,14 @@ export const traducciones: Record<string, Entrada> = {
     es: '¿Eliminar esta carpeta y todo su contenido?',
     en: 'Delete this folder and everything inside it?',
   },
+  'carpetas.miscarpetas': { es: 'Mis carpetas', en: 'My Folders' },
+  'carpetas.subcarpetas': { es: 'subcarpetas', en: 'subfolders' },
+  'carpetas.seleccionarImagen': { es: 'Ver información', en: 'View info' },
+  'carpetas.abrirEnVisor': { es: 'Abrir en el visor', en: 'Open in viewer' },
+  'carpetas.panel.sinSeleccion': {
+    es: 'Selecciona una imagen para ver su información aquí',
+    en: 'Select an image to see its info here',
+  },
 
   // Mis reportes
   'nav.misReportes': { es: 'Mis reportes', en: 'My reports' },
@@ -144,35 +152,44 @@ export const traducciones: Record<string, Entrada> = {
   'visor.tempMax': { es: 'Máx.', en: 'Max' },
   'visor.tempMin': { es: 'Mín.', en: 'Min' },
   'visor.herramienta.seleccionar': { es: 'Seleccionar', en: 'Select' },
-  'visor.herramienta.punto': { es: 'Punto', en: 'Point' },
+  'visor.herramienta.punto': { es: 'Punto termográfico', en: 'Thermal point' },
   'visor.herramienta.rectangulo': { es: 'Rectángulo', en: 'Rectangle' },
   'visor.herramienta.circulo': { es: 'Círculo', en: 'Circle' },
-  'visor.herramienta.linea': { es: 'Línea', en: 'Line' },
   'visor.herramienta.color': { es: 'Color de las formas', en: 'Shape color' },
   'visor.herramienta.borrarTodo': { es: 'Borrar todas las marcas', en: 'Clear all marks' },
   'visor.reporteRegistrado': {
     es: 'Se agregó a "Mis reportes". La generación real del archivo llegará con el backend.',
     en: 'Added to "My reports". Actual file generation will come with the backend.',
   },
+  'visor.editar': { es: 'Editar', en: 'Edit' },
+  'visor.exportar': { es: 'Exportar', en: 'Export' },
+  'visor.limpiarTodo': { es: 'Borrar todas las mediciones', en: 'Clear All Measurements' },
 
-  // Panel del visor — tabla de propiedades (valores reales pendientes de backend)
-  'visor.propiedades.titulo': { es: 'Propiedades', en: 'Properties' },
+  // Panel del visor — tabla de parámetros de captura (valores reales pendientes de backend)
+  'visor.parametros.titulo': { es: 'Parámetros', en: 'Parameters' },
+  'visor.parametros.distancia': { es: 'Distancia', en: 'Distance' },
+  'visor.parametros.humedad': { es: 'Humedad', en: 'Humidity' },
+  'visor.parametros.emisividad': { es: 'Emisividad', en: 'Emissivity' },
+  'visor.parametros.tempReflejada': { es: 'Temp. reflejada', en: 'Reflected Temp' },
+
+  // Panel del visor — tabla de información de la imagen (valores reales pendientes de backend)
+  'visor.propiedades.titulo': { es: 'Información de la imagen', en: 'Image Info' },
   'visor.propiedades.modelo': { es: 'Modelo', en: 'Model' },
-  'visor.propiedades.numeroSerie': { es: 'Número de serie', en: 'Serial number' },
-  'visor.propiedades.distanciaFocal': { es: 'Distancia focal', en: 'Focal length' },
-  'visor.propiedades.apertura': { es: 'Apertura', en: 'Aperture' },
+  'visor.propiedades.numeroSerie': { es: 'Número de serie', en: 'Serial Number' },
+  'visor.propiedades.distanciaFocal': { es: 'Distancia focal', en: 'Focal Length' },
+  'visor.propiedades.apertura': { es: 'Apertura', en: 'F-Number' },
   'visor.propiedades.ancho': { es: 'Ancho', en: 'Width' },
   'visor.propiedades.alto': { es: 'Alto', en: 'Height' },
   'visor.propiedades.creado': { es: 'Creado', en: 'Created' },
   'visor.propiedades.modificado': { es: 'Modificado', en: 'Modified' },
   'visor.propiedades.coordenadas': { es: 'Coordenadas', en: 'Coordinates' },
 
-  // Panel del visor — tabla editable de anotaciones propias
-  'visor.notas.titulo': { es: 'Anotaciones', en: 'Annotations' },
+  // Panel del visor — tabla editable de observaciones (Remarks)
+  'visor.notas.titulo': { es: 'Observaciones', en: 'Remarks' },
   'visor.notas.clave': { es: 'Clave', en: 'Key' },
   'visor.notas.valor': { es: 'Valor', en: 'Value' },
   'visor.notas.agregar': { es: 'Agregar fila', en: 'Add row' },
-  'visor.notas.vacio': { es: 'Sin anotaciones todavía', en: 'No annotations yet' },
+  'visor.notas.vacio': { es: 'Sin observaciones todavía', en: 'No remarks yet' },
 
   // Modal de ajustes
   'ajustes.idioma.titulo': { es: 'Idioma', en: 'Language' },

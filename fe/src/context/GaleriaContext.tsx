@@ -2,6 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Carpeta, ImagenCargada } from '../types/galeria';
 import { normalizarRangoTermico } from '../utils/temperaturas';
+import {
+  buscarCarpetaPorId,
+  buscarCarpetaPorRuta,
+  eliminarDeArbol,
+  eliminarImagenesDeArbol,
+  insertarEnArbol,
+  revocarUrlsRecursivo,
+} from '../utils/arbolCarpetas';
 import { useAuth } from './AuthContext';
 
 export interface ReporteGenerado {
@@ -20,9 +28,13 @@ interface GaleriaContextType {
   crearCarpeta: (nombre: string) => string;
   seleccionarCarpeta: (id: string) => void;
   agregarImagenes: (carpetaId: string, archivos: File[]) => void;
+  // Carga un lote de archivos que puede traer subcarpetas (webkitRelativePath),
+  // reconstruye el árbol y devuelve el id de la carpeta más útil para seleccionar.
+  cargarCarpetaDesdeArchivos: (archivos: File[], nombrePorDefecto: string) => string;
   seleccionarImagen: (id: string) => void;
   eliminarImagenes: (carpetaId: string, imagenIds: string[]) => void;
   eliminarCarpeta: (carpetaId: string) => void;
+  obtenerCarpeta: (id: string) => Carpeta | undefined;
   registrarReporte: (nombreImagen: string, carpeta: string, formato: 'PDF' | 'DOC') => void;
 }
 
@@ -41,7 +53,25 @@ const generarTemperaturas = () => {
   });
 };
 
-const CARPETA_INICIAL: Carpeta = { id: 'general', nombre: 'General', imagenes: [] };
+const CARPETA_INICIAL: Carpeta = { id: 'general', nombre: 'General', imagenes: [], subcarpetas: [], parentId: null };
+
+const crearImagenesDesdeArchivos = (archivos: File[]): ImagenCargada[] =>
+  archivos.map((archivo) => {
+    const { temperaturaMin, temperaturaMax } = generarTemperaturas();
+    return {
+      id: `${archivo.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      archivo,
+      urlPrevia: URL.createObjectURL(archivo),
+      fecha: new Date().toISOString(),
+      temperaturaMin,
+      temperaturaMax,
+      unidadOrigen: 'C',
+      // Los valores reales de estos dos bloques los completará el backend de
+      // análisis (lectura EXIF / FLIR) cuando quede integrado.
+      parametros: {},
+      infoImagen: {},
+    };
+  });
 
 export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { usuario } = useAuth();
@@ -68,6 +98,8 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
       id: `carpeta-${Date.now()}`,
       nombre: nombreLimpio,
       imagenes: [],
+      subcarpetas: [],
+      parentId: null,
     };
 
     setCarpetas((prev) => [...prev, nueva]);
@@ -77,44 +109,57 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const seleccionarCarpeta = (id: string) => setCarpetaActivaId(id);
 
-  const agregarImagenes = (carpetaId: string, archivos: File[]) => {
-    const nuevasImagenes: ImagenCargada[] = archivos.map((archivo) => {
-      const { temperaturaMin, temperaturaMax } = generarTemperaturas();
-      return {
-        id: `${archivo.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        archivo,
-        urlPrevia: URL.createObjectURL(archivo),
-        fecha: new Date().toISOString(),
-        temperaturaMin,
-        temperaturaMax,
-        unidadOrigen: 'C',
-      };
+  // Inserta imágenes directamente en la carpeta con ese id (sin crear más niveles)
+  const insertarEnArbolPorId = (lista: Carpeta[], carpetaId: string, imagenes: ImagenCargada[]): Carpeta[] =>
+    lista.map((c) => {
+      if (c.id === carpetaId) return { ...c, imagenes: [...imagenes, ...c.imagenes] };
+      return { ...c, subcarpetas: insertarEnArbolPorId(c.subcarpetas, carpetaId, imagenes) };
     });
 
-    setCarpetas((prev) =>
-      prev.map((c) =>
-        c.id === carpetaId ? { ...c, imagenes: [...nuevasImagenes, ...c.imagenes] } : c
-      )
-    );
+  const agregarImagenes = (carpetaId: string, archivos: File[]) => {
+    const nuevasImagenes = crearImagenesDesdeArchivos(archivos);
+    setCarpetas((prev) => insertarEnArbolPorId(prev, carpetaId, nuevasImagenes));
+  };
+
+  // Recibe archivos que pueden traer webkitRelativePath (carpeta del sistema
+  // operativo, con o sin subcarpetas dentro) y reconstruye el árbol completo,
+  // fusionándolo con lo que ya existía si los nombres coinciden.
+  const cargarCarpetaDesdeArchivos = (archivos: File[], nombrePorDefecto: string): string => {
+    const validos = archivos.filter((a) => a.type.startsWith('image/'));
+    if (validos.length === 0) return carpetaActivaId;
+
+    const grupos = new Map<string, File[]>();
+    validos.forEach((archivo) => {
+      const rel = (archivo as File & { webkitRelativePath?: string }).webkitRelativePath;
+      const partes = rel ? rel.split('/').filter(Boolean) : [];
+      const segmentosCarpeta = partes.slice(0, -1);
+      const ruta = segmentosCarpeta.length > 0 ? segmentosCarpeta.join('/') : `__raiz__/${nombrePorDefecto}`;
+      const lista = grupos.get(ruta) ?? [];
+      lista.push(archivo);
+      grupos.set(ruta, lista);
+    });
+
+    let arbolNuevo = carpetas;
+    let idSeleccion = carpetaActivaId;
+
+    grupos.forEach((archivosGrupo, ruta) => {
+      const segmentos = ruta.startsWith('__raiz__/') ? [ruta.replace('__raiz__/', '')] : ruta.split('/');
+      arbolNuevo = insertarEnArbol(arbolNuevo, segmentos, crearImagenesDesdeArchivos(archivosGrupo));
+
+      const hoja = buscarCarpetaPorRuta(arbolNuevo, segmentos);
+      if (hoja) idSeleccion = hoja.id;
+    });
+
+    setCarpetas(arbolNuevo);
+    setCarpetaActivaId(idSeleccion);
+    return idSeleccion;
   };
 
   const seleccionarImagen = (id: string) => setImagenSeleccionadaId(id);
 
   const eliminarImagenes = (carpetaId: string, imagenIds: string[]) => {
     const idsAEliminar = new Set(imagenIds);
-
-    setCarpetas((prev) =>
-      prev.map((c) => {
-        if (c.id !== carpetaId) return c;
-
-        // Liberamos la vista previa de las imágenes que se van a borrar
-        c.imagenes.forEach((img) => {
-          if (idsAEliminar.has(img.id)) URL.revokeObjectURL(img.urlPrevia);
-        });
-
-        return { ...c, imagenes: c.imagenes.filter((img) => !idsAEliminar.has(img.id)) };
-      })
-    );
+    setCarpetas((prev) => eliminarImagenesDeArbol(prev, carpetaId, idsAEliminar));
 
     if (imagenSeleccionadaId && idsAEliminar.has(imagenSeleccionadaId)) {
       setImagenSeleccionadaId(null);
@@ -123,24 +168,23 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const eliminarCarpeta = (carpetaId: string) => {
     setCarpetas((prev) => {
-      const carpetaAEliminar = prev.find((c) => c.id === carpetaId);
-      carpetaAEliminar?.imagenes.forEach((img) => URL.revokeObjectURL(img.urlPrevia));
+      const { lista, eliminada } = eliminarDeArbol(prev, carpetaId);
+      if (eliminada) revocarUrlsRecursivo(eliminada);
 
-      const restantes = prev.filter((c) => c.id !== carpetaId);
-
-      // Siempre debe quedar al menos una carpeta disponible
-      if (restantes.length === 0) {
+      if (lista.length === 0) {
         setCarpetaActivaId(CARPETA_INICIAL.id);
-        return [CARPETA_INICIAL];
+        return [{ ...CARPETA_INICIAL, imagenes: [], subcarpetas: [] }];
       }
 
-      if (carpetaActivaId === carpetaId) {
-        setCarpetaActivaId(restantes[0].id);
+      if (!buscarCarpetaPorId(lista, carpetaActivaId)) {
+        setCarpetaActivaId(lista[0].id);
       }
 
-      return restantes;
+      return lista;
     });
   };
+
+  const obtenerCarpeta = (id: string): Carpeta | undefined => buscarCarpetaPorId(carpetas, id);
 
   const registrarReporte = (nombreImagen: string, carpeta: string, formato: 'PDF' | 'DOC') => {
     const nuevo: ReporteGenerado = {
@@ -163,9 +207,11 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
         crearCarpeta,
         seleccionarCarpeta,
         agregarImagenes,
+        cargarCarpetaDesdeArchivos,
         seleccionarImagen,
         eliminarImagenes,
         eliminarCarpeta,
+        obtenerCarpeta,
         registrarReporte,
       }}
     >

@@ -16,11 +16,13 @@ CREATE TABLE rol (
 
 CREATE TABLE informe (
     id_informe INT AUTO_INCREMENT PRIMARY KEY,
-    fecha_generacion DATE,
+    fecha_generacion DATE DEFAULT (CURRENT_DATE),
     nivel_riesgo VARCHAR(400),
     observaciones TEXT,
     estado VARCHAR(10),
-    id_usuario INT
+    nombre_archivo VARCHAR(255) NOT NULL,
+    ruta_pdf VARCHAR(500) NOT NULL,
+    id_usuario INT NOT NULL
 );
 
 CREATE TABLE imagen_termografica (
@@ -75,3 +77,35 @@ ALTER TABLE punto_medicion
     FOREIGN KEY (id_imagen) REFERENCES imagen_termografica(id_imagen);
     
 INSERT INTO rol (tipo_rol) VALUES ('Administrador'), ('Tecnico');
+
+SELECT * FROM usuario;
+
+SELECT * FROM punto_medicion
+
+
+USE thermalcheck;
+
+ALTER TABLE punto_medicion
+ADD COLUMN tipo ENUM('punto','region') NOT NULL DEFAULT 'punto',
+ADD COLUMN x INT NULL,
+ADD COLUMN y INT NULL,
+ADD COLUMN x1 INT NULL,
+ADD COLUMN y1 INT NULL,
+ADD COLUMN x2 INT NULL,
+ADD COLUMN y2 INT NULL,
+ADD COLUMN valor_min DECIMAL(6,2) NULL,
+ADD COLUMN valor_avg DECIMAL(6,2) NULL,
+ADD COLUMN valor_max DECIMAL(6,2) NULL;
+
+ALTER TABLE punto_medicion
+MODIFY COLUMN valor_temp DECIMAL(6,2) NULL;
+
+ALTER TABLE imagen_termografica
+    ADD COLUMN ruta_archivo VARCHAR(500) NULL AFTER nombre_archivo;
+    
+ALTER TABLE punto_medicion
+  ADD COLUMN pos_min_x INT NULL,
+  ADD COLUMN pos_min_y INT NULL,
+  ADD COLUMN pos_max_x INT NULL,
+  ADD COLUMN pos_max_y INT NULL;
+ 

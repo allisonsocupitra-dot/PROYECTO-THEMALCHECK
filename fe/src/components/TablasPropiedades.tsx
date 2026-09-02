@@ -1,92 +1,162 @@
-import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
-import type { ImagenCargada } from '../types/galeria';
-
-const VALOR_VACIO = '—';
-
-// Tabla "Parameters": parámetros de captura térmica (distancia, humedad, emisividad...).
-// Los valores reales los completará el backend de análisis; mientras tanto se
-// muestra un guion para dejar la estructura lista para esa integración.
-export const TablaParametros: React.FC<{ imagen: ImagenCargada }> = ({ imagen }) => {
-  const { t } = useLanguage();
-  const p = imagen.parametros ?? {};
-
+import React from "react";
+import { formatearTemperatura } from "../utils/temperaturas";
+ 
+interface TablaParametrosProps {
+  imagen: any;
+  onCambiarTempReflejada: (valor: number) => void;
+  // Contenido opcional que se renderiza justo debajo del cuadro Máx/Mín/ΔTemp
+  // y antes de la sección de Parámetros (ej. la lista de puntos de medición).
+  debajoDelCuadro?: React.ReactNode;
+}
+ 
+export const TablaParametros: React.FC<TablaParametrosProps> = ({
+  imagen,
+  onCambiarTempReflejada,
+  debajoDelCuadro,
+}) => {
+  const temperaturaMax = Number(imagen?.temperaturaMax ?? 0);
+  const temperaturaMin = Number(imagen?.temperaturaMin ?? 0);
+ 
+  const deltaTemp =
+    imagen?.temperaturaMax != null && imagen?.temperaturaMin != null
+      ? temperaturaMax - temperaturaMin
+      : 0;
+ 
   return (
     <>
-      <h5 className="visor-panel-subtitulo">{t('visor.parametros.titulo')}</h5>
-      <table className="tabla-propiedades">
-        <tbody>
-          <tr>
-            <th>{t('visor.parametros.distancia')}</th>
-            <td>{p.distancia ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.parametros.humedad')}</th>
-            <td>{p.humedad ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.parametros.emisividad')}</th>
-            <td>{p.emisividad ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.parametros.tempReflejada')}</th>
-            <td>{p.temperaturaReflejada ?? VALOR_VACIO}</td>
-          </tr>
-        </tbody>
-      </table>
+      {/* Cuadro superior */}
+      <div className="info-imagen">
+        <div>
+          <span className="texto-suave">Máx.</span>
+          <strong>{formatearTemperatura(temperaturaMax)}°C</strong>
+        </div>
+ 
+        <div>
+          <span className="texto-suave">Mín.</span>
+          <strong>{formatearTemperatura(temperaturaMin)}°C</strong>
+        </div>
+ 
+        <div>
+          <span className="texto-suave">ΔTemp</span>
+          <strong>{formatearTemperatura(deltaTemp)}°C</strong>
+        </div>
+      </div>
+ 
+      {debajoDelCuadro}
+ 
+      {/* Parámetros */}
+      <div className="visor-panel-seccion">
+        <h5>PARÁMETROS</h5>
+ 
+        <div className="fila-parametro">
+          <span>Distancia</span>
+          <span>{imagen?.parametros?.distancia ?? "—"}</span>
+        </div>
+ 
+        <div className="fila-parametro">
+          <span>Humedad</span>
+          <span>{imagen?.parametros?.humedad ?? "—"}</span>
+        </div>
+ 
+        <div className="fila-parametro">
+          <span>Emisividad</span>
+          <span>{imagen?.parametros?.emisividad ?? "—"}</span>
+        </div>
+ 
+        <div className="temp-reflejada">
+          <label>Temp. reflejada</label>
+ 
+          <div className="temp-reflejada-control">
+            <button
+              onClick={() =>
+                onCambiarTempReflejada(
+                  Number(imagen?.parametros?.tempReflejada ?? 20) - 1
+                )
+              }
+            >
+              −
+            </button>
+ 
+            <input
+              type="number"
+              value={imagen?.parametros?.tempReflejada ?? 20}
+              onChange={(e) =>
+                onCambiarTempReflejada(Number(e.target.value))
+              }
+            />
+ 
+            <button
+              onClick={() =>
+                onCambiarTempReflejada(
+                  Number(imagen?.parametros?.tempReflejada ?? 20) + 1
+                )
+              }
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
     </>
   );
 };
-
-// Tabla "Image Info": metadatos EXIF / de cámara. Igual que arriba, a la espera
-// del backend de análisis que lea el archivo real.
-export const TablaInfoImagen: React.FC<{ imagen: ImagenCargada }> = ({ imagen }) => {
-  const { t } = useLanguage();
-  const info = imagen.infoImagen ?? {};
-
+ 
+interface TablaInfoImagenProps {
+  imagen: any;
+}
+ 
+export const TablaInfoImagen: React.FC<TablaInfoImagenProps> = ({ imagen }) => {
+  const info = imagen?.infoImagen ?? {};
+ 
   return (
-    <>
-      <h5 className="visor-panel-subtitulo">{t('visor.propiedades.titulo')}</h5>
-      <table className="tabla-propiedades">
-        <tbody>
-          <tr>
-            <th>{t('visor.propiedades.modelo')}</th>
-            <td>{info.modelo ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.propiedades.numeroSerie')}</th>
-            <td>{info.numeroSerie ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.propiedades.distanciaFocal')}</th>
-            <td>{info.distanciaFocal ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.propiedades.apertura')}</th>
-            <td>{info.apertura ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.propiedades.ancho')}</th>
-            <td>{info.ancho ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.propiedades.alto')}</th>
-            <td>{info.alto ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.propiedades.creado')}</th>
-            <td>{new Date(imagen.fecha).toLocaleString()}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.propiedades.modificado')}</th>
-            <td>{info.modificado ?? VALOR_VACIO}</td>
-          </tr>
-          <tr>
-            <th>{t('visor.propiedades.coordenadas')}</th>
-            <td>{info.coordenadas ?? VALOR_VACIO}</td>
-          </tr>
-        </tbody>
-      </table>
-    </>
+    <div className="visor-panel-seccion">
+      <h5>INFORMACIÓN DE LA IMAGEN</h5>
+ 
+      <div className="fila-parametro">
+        <span>Modelo</span>
+        <span>{info.modelo ?? "M3T"}</span>
+      </div>
+ 
+      <div className="fila-parametro">
+        <span>Número de serie</span>
+        <span>{info.numeroSerie ?? "—"}</span>
+      </div>
+ 
+      <div className="fila-parametro">
+        <span>Distancia focal</span>
+        <span>{info.distanciaFocal ?? "9.1 mm"}</span>
+      </div>
+ 
+      <div className="fila-parametro">
+        <span>Apertura</span>
+        <span>{info.apertura ?? "f/1"}</span>
+      </div>
+ 
+      <div className="fila-parametro">
+        <span>Ancho</span>
+        <span>{info.ancho ?? 640}</span>
+      </div>
+ 
+      <div className="fila-parametro">
+        <span>Alto</span>
+        <span>{info.alto ?? 512}</span>
+      </div>
+ 
+      <div className="fila-parametro">
+        <span>Creado</span>
+        <span>{info.creado ?? "—"}</span>
+      </div>
+ 
+      <div className="fila-parametro">
+        <span>Modificado</span>
+        <span>{info.modificado ?? "—"}</span>
+      </div>
+ 
+      <div className="fila-parametro">
+        <span>Coordenadas</span>
+        <span>{info.coordenadas ?? "—"}</span>
+      </div>
+    </div>
   );
 };
+ 

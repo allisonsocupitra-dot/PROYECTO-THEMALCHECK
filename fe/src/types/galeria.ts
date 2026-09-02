@@ -1,17 +1,15 @@
 export type UnidadTemperatura = 'C' | 'F';
-
+ 
 // Parámetros de captura térmica (distancia, humedad, emisividad, temp. reflejada).
-// El backend de análisis todavía no los calcula: quedan opcionales y se muestran
-// como "—" hasta que ese servicio quede integrado.
+// Vienen del backend (imagen_termografica) una vez la imagen fue subida y analizada.
 export interface ParametrosTermicos {
   distancia?: string;
   humedad?: string;
   emisividad?: string;
   temperaturaReflejada?: string;
 }
-
-// Metadatos EXIF / de cámara de la imagen. Igual que arriba: opcionales,
-// se completan cuando el backend de análisis quede conectado.
+ 
+// Metadatos EXIF / de cámara de la imagen. Vienen del backend igual que arriba.
 export interface InfoImagen {
   modelo?: string;
   numeroSerie?: string;
@@ -22,7 +20,14 @@ export interface InfoImagen {
   modificado?: string;
   coordenadas?: string;
 }
-
+ 
+// Punto de medición ya guardado en el backend (tabla punto_medicion).
+export interface PuntoMedicionGuardado {
+  id?: number;
+  etiqueta: string;
+  valorTemp: number;
+}
+ 
 export interface ImagenCargada {
   id: string;
   archivo: File;
@@ -33,8 +38,15 @@ export interface ImagenCargada {
   unidadOrigen?: UnidadTemperatura;
   parametros?: ParametrosTermicos;
   infoImagen?: InfoImagen;
+  // Id numérico real en la BD (tabla imagen_termografica). Se obtiene al subir
+  // el archivo a POST /imagenes/upload. Mientras la subida está en curso vale
+  // undefined; si la subida falla, queda null y el visor debe avisar al usuario.
+  idBackend?: number | null;
+  subiendo?: boolean;
+  errorSubida?: string;
+  puntos?: PuntoMedicionGuardado[];
 }
-
+ 
 export interface Carpeta {
   id: string;
   nombre: string;
@@ -44,3 +56,4 @@ export interface Carpeta {
   subcarpetas: Carpeta[];
   parentId?: string | null;
 }
+ 

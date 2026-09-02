@@ -1,35 +1,37 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { listarTecnicos } from '../api/Usuarios';
-import { obtenerRegistrosPorTecnico } from '../api/Registros';
-import type { RegistroAnalisis } from '../api/Registros';
-import type { Usuario } from '../types/auth';
+import {
+  listarTecnicosConInformes,
+  listarInformesPorTecnico,
+  descargarInforme,
+} from '../api/Busqueda';
+import type { TecnicoConInformes, Informe } from '../api/Busqueda';
 import NavLateral from '../components/NavLateral';
 import '../styles/styles.css';
 import '../styles/dashboard.css';
 import '../styles/admin.css';
-
+ 
 const AdminPage: React.FC = () => {
   const { usuario } = useAuth();
   const { t } = useLanguage();
-
+ 
   const [busqueda, setBusqueda] = useState('');
-  const [tecnicos, setTecnicos] = useState<Usuario[]>([]);
+  const [tecnicos, setTecnicos] = useState<TecnicoConInformes[]>([]);
   const [cargandoTecnicos, setCargandoTecnicos] = useState(false);
   const [errorTecnicos, setErrorTecnicos] = useState(false);
-
-  const [usuarioSeleccionadoId, setUsuarioSeleccionadoId] = useState<string | null>(null);
-  const [registros, setRegistros] = useState<RegistroAnalisis[]>([]);
-  const [cargandoRegistros, setCargandoRegistros] = useState(false);
-
+ 
+  const [usuarioSeleccionadoId, setUsuarioSeleccionadoId] = useState<number | null>(null);
+  const [informes, setInformes] = useState<Informe[]>([]);
+  const [cargandoInformes, setCargandoInformes] = useState(false);
+ 
   // Vuelve a pedir la lista de técnicos cada vez que cambia el texto buscado
   useEffect(() => {
     let cancelado = false;
     setCargandoTecnicos(true);
     setErrorTecnicos(false);
-
-    listarTecnicos(busqueda)
+ 
+    listarTecnicosConInformes(busqueda || undefined)
       .then((resultado) => {
         if (!cancelado) setTecnicos(resultado);
       })
@@ -39,55 +41,55 @@ const AdminPage: React.FC = () => {
       .finally(() => {
         if (!cancelado) setCargandoTecnicos(false);
       });
-
+ 
     return () => {
       cancelado = true;
     };
   }, [busqueda]);
-
-  // Pide los registros del técnico seleccionado
+ 
+  // Pide los informes del técnico seleccionado
   useEffect(() => {
     if (!usuarioSeleccionadoId) {
-      setRegistros([]);
+      setInformes([]);
       return;
     }
-
+ 
     let cancelado = false;
-    setCargandoRegistros(true);
-
-    obtenerRegistrosPorTecnico(usuarioSeleccionadoId)
+    setCargandoInformes(true);
+ 
+    listarInformesPorTecnico(usuarioSeleccionadoId)
       .then((resultado) => {
-        if (!cancelado) setRegistros(resultado);
+        if (!cancelado) setInformes(resultado);
       })
       .catch(() => {
-        if (!cancelado) setRegistros([]);
+        if (!cancelado) setInformes([]);
       })
       .finally(() => {
-        if (!cancelado) setCargandoRegistros(false);
+        if (!cancelado) setCargandoInformes(false);
       });
-
+ 
     return () => {
       cancelado = true;
     };
   }, [usuarioSeleccionadoId]);
-
+ 
   const usuarioSeleccionado = useMemo(
-    () => tecnicos.find((t2) => t2.id === usuarioSeleccionadoId),
+    () => tecnicos.find((t2) => t2.id_usuario === usuarioSeleccionadoId),
     [tecnicos, usuarioSeleccionadoId]
   );
-
+ 
   return (
     <>
       <div className="explorador">
         <NavLateral />
-
+ 
         <div className="explorador-contenido">
           <header className="explorador-header explorador-header-simple">
             <h3>
               {t('admin.titulo')} {usuario ? `— ${usuario.nombre}` : ''}
             </h3>
           </header>
-
+ 
           <section className="panel-admin">
             <div className="panel-busqueda">
               <div className="input-box input-box-admin">
@@ -99,7 +101,7 @@ const AdminPage: React.FC = () => {
                   onChange={(e) => setBusqueda(e.target.value)}
                 />
               </div>
-
+ 
               <table className="tabla-usuarios">
                 <thead>
                   <tr>
@@ -116,7 +118,7 @@ const AdminPage: React.FC = () => {
                       </td>
                     </tr>
                   )}
-
+ 
                   {!cargandoTecnicos && errorTecnicos && (
                     <tr>
                       <td colSpan={3} className="texto-suave">
@@ -124,7 +126,7 @@ const AdminPage: React.FC = () => {
                       </td>
                     </tr>
                   )}
-
+ 
                   {!cargandoTecnicos && !errorTecnicos && tecnicos.length === 0 && (
                     <tr>
                       <td colSpan={3} className="texto-suave">
@@ -132,72 +134,85 @@ const AdminPage: React.FC = () => {
                       </td>
                     </tr>
                   )}
-
+ 
                   {!cargandoTecnicos &&
                     !errorTecnicos &&
                     tecnicos.map((t2) => (
                       <tr
-                        key={t2.id}
-                        className={t2.id === usuarioSeleccionadoId ? 'fila-seleccionada' : ''}
-                        onClick={() => setUsuarioSeleccionadoId(t2.id)}
+                        key={t2.id_usuario}
+                        className={t2.id_usuario === usuarioSeleccionadoId ? 'fila-seleccionada' : ''}
+                        onClick={() => setUsuarioSeleccionadoId(t2.id_usuario)}
                       >
-                        <td>
-                          {t2.nombre} {t2.apellido}
-                        </td>
-                        <td>{t2.correo}</td>
-                        <td>{t2.id === usuarioSeleccionadoId ? registros.length : '—'}</td>
+                        <td>{t2.nombre_usuario}</td>
+                        <td>{t2.correo_usuario}</td>
+                        <td>{t2.total_registros}</td>
                       </tr>
                     ))}
                 </tbody>
               </table>
             </div>
-
+ 
             <div className="panel-registros">
               <h4>
                 {usuarioSeleccionado
-                  ? `${t('admin.registros.titulo')} ${usuarioSeleccionado.nombre} ${usuarioSeleccionado.apellido}`
+                  ? `${t('admin.registros.titulo')} ${usuarioSeleccionado.nombre_usuario}`
                   : t('admin.registros.seleccion')}
               </h4>
-
+ 
               {usuarioSeleccionado && (
                 <table className="tabla-registros">
                   <thead>
                     <tr>
                       <th>{t('admin.registros.tabla.imagen')}</th>
                       <th>{t('admin.registros.tabla.fecha')}</th>
-                      <th>{t('admin.registros.tabla.tempMax')}</th>
-                      <th>{t('admin.registros.tabla.tempMin')}</th>
                       <th>{t('admin.registros.tabla.estado')}</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {cargandoRegistros && (
+                    {cargandoInformes && (
                       <tr>
-                        <td colSpan={5} className="texto-suave">
+                        <td colSpan={4} className="texto-suave">
                           {t('admin.cargando')}
                         </td>
                       </tr>
                     )}
-
-                    {!cargandoRegistros && registros.length === 0 && (
+ 
+                    {!cargandoInformes && informes.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="texto-suave">
+                        <td colSpan={4} className="texto-suave">
                           {t('admin.registros.vacio')}
                         </td>
                       </tr>
                     )}
-
-                    {!cargandoRegistros &&
-                      registros.map((r) => (
-                        <tr key={r.id}>
-                          <td>{r.nombreImagen}</td>
-                          <td>{new Date(r.fecha).toLocaleDateString()}</td>
-                          <td>{r.temperaturaMax}°C</td>
-                          <td>{r.temperaturaMin}°C</td>
+ 
+                    {!cargandoInformes &&
+                      informes.map((inf) => (
+                        <tr key={inf.id_informe}>
+                          <td>{inf.nombre_archivo}</td>
                           <td>
-                            <span className={`estado estado-${r.estado.toLowerCase()}`}>
-                              {t(`estado.${r.estado.toLowerCase()}`)}
-                            </span>
+                            {inf.fecha_generacion
+                              ? new Date(inf.fecha_generacion).toLocaleDateString()
+                              : '—'}
+                          </td>
+                          <td>
+                            {inf.estado ? (
+                              <span className={`estado estado-${inf.estado.toLowerCase()}`}>
+                                {t(`estado.${inf.estado.toLowerCase()}`)}
+                              </span>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="boton-descargar-informe"
+                              title={t('admin.registros.descargar')}
+                              onClick={() => descargarInforme(inf)}
+                            >
+                              <i className="fa-solid fa-download"></i>
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -208,10 +223,11 @@ const AdminPage: React.FC = () => {
           </section>
         </div>
       </div>
-
+ 
       <footer className="footer">{t('footer.texto')}</footer>
     </>
   );
 };
-
+ 
 export default AdminPage;
+ 

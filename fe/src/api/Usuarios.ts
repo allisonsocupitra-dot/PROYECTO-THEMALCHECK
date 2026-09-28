@@ -40,7 +40,8 @@ export const iniciarSesion = async (correo: string, contraseña: string, rol: Ro
   if (!respuesta.ok) {
     const cuerpo = await respuesta.json().catch(() => null);
     if (respuesta.status === 403) {
-      const error: ErrorAuth = { codigo: 'rol', mensaje: cuerpo?.detail };
+      const idReal = Number(cuerpo?.detail?.match(/id_rol=(\d+)/)?.[1]);
+      const error: ErrorAuth = { codigo: 'rol', rolReal: idReal === 1 ? 'admin' : 'tecnico', mensaje: cuerpo?.detail };
       throw error;
     }
     const error: ErrorAuth = { codigo: 'credenciales', mensaje: cuerpo?.detail };

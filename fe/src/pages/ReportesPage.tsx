@@ -41,9 +41,13 @@ const MisReportesPage: React.FC = () => {
                   <tbody>
                     {reportes.map((r) => (
                       <tr key={r.id}>
-                        <td>{r.nombreImagen}</td>
+                        <td><strong>{r.nombreImagen}</strong></td>
                         <td>{r.carpeta}</td>
-                        <td>{r.formato}</td>
+                        <td>
+                          <span className={`badge-formato badge-${r.formato.toLowerCase()}`}>
+                            {r.formato}
+                          </span>
+                        </td>
                         <td>{new Date(r.fecha).toLocaleString()}</td>
                       </tr>
                     ))}

@@ -253,6 +253,20 @@ const DashboardPage: React.FC = () => {
                         <i className="fa-solid fa-expand"></i>
                       </button>
 
+                      {img.subiendo && (
+                        <span className="badge-estado-imagen badge-subiendo">
+                          <span className="loader loader-mini"></span>
+                          Analizando
+                        </span>
+                      )}
+
+                      {img.errorSubida && (
+                        <span className="badge-estado-imagen badge-error" title={img.errorSubida}>
+                          <i className="fa-solid fa-triangle-exclamation"></i>
+                          Error
+                        </span>
+                      )}
+
                       <button
                         type="button"
                         className="area-clic-miniatura"

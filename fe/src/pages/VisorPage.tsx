@@ -117,6 +117,19 @@
     const contadorRef = useRef(0);
     const inputColorRef = useRef<HTMLInputElement>(null);
     const contenedorImagenRef = useRef<HTMLDivElement>(null);
+    const menuExportarRef = useRef<HTMLDivElement>(null);
+
+    // Cierra el menú desplegable de exportar al hacer clic en cualquier otra parte
+    useEffect(() => {
+      if (!menuExportarAbierto) return;
+      const handleClickFuera = (e: MouseEvent) => {
+        if (menuExportarRef.current && !menuExportarRef.current.contains(e.target as Node)) {
+          setMenuExportarAbierto(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickFuera);
+      return () => document.removeEventListener('mousedown', handleClickFuera);
+    }, [menuExportarAbierto]);
   
     // Aplanamos todo el árbol de carpetas (incluidas las subcarpetas) para tener
     // una sola lista de imágenes cargadas, con la ruta completa de cada una.
@@ -560,7 +573,7 @@ const handleExportarReporte = async (formato: 'PDF' | 'DOC') => {
                             <i className="fa-solid fa-pen"></i> {t('visor.editar')}
                           </button>
   
-                          <div className="menu-exportar-visor">
+                          <div className="menu-exportar-visor" ref={menuExportarRef}>
                             <button
                               type="button"
                               className="boton-superior-visor"
@@ -568,7 +581,7 @@ const handleExportarReporte = async (formato: 'PDF' | 'DOC') => {
                               onClick={() => setMenuExportarAbierto((prev) => !prev)}
                             >
                               <i className="fa-solid fa-file-export"></i> {t('visor.exportar')}
-                              <i className="fa-solid fa-chevron-down menu-exportar-flecha"></i>
+                              <i className={`fa-solid fa-chevron-down menu-exportar-flecha ${menuExportarAbierto ? 'rotado' : ''}`}></i>
                             </button>
   
                             {menuExportarAbierto && (
@@ -588,7 +601,12 @@ const handleExportarReporte = async (formato: 'PDF' | 'DOC') => {
                         </div>
                       </div>
   
-                      {avisoPendiente && <p className="aviso-pendiente aviso-pendiente-superior">{t('visor.reporteRegistrado')}</p>}
+                      {avisoPendiente && (
+                        <p className="aviso-pendiente aviso-pendiente-superior">
+                          <i className="fa-solid fa-circle-check" style={{ color: '#1a7a43', fontSize: '13px' }}></i>
+                          {t('visor.reporteRegistrado')}
+                        </p>
+                      )}
   
                       <div className="area-imagen-y-herramientas">
                         {edicionActiva && (

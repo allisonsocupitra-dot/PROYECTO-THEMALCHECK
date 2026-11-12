@@ -15,35 +15,42 @@
  
     .pestanas-imagenes{
         display: flex;
-        gap: 6px;
+        gap: 8px;
         overflow-x: auto;
-        margin-bottom: 15px;
+        margin-bottom: 16px;
         padding-bottom: 8px;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--border-soft);
+        scrollbar-width: thin;
     }
  
     .pestana{
         flex-shrink: 0;
-        padding: 6px 12px;
-        border-radius: 6px 6px 0 0;
-        border: none;
-        background-color: var(--primary-soft);
-        color: #555;
+        padding: 8px 14px;
+        border-radius: 8px 8px 0 0;
+        border: 1px solid transparent;
+        border-bottom: none;
+        background-color: rgba(255, 240, 232, 0.6);
+        color: var(--text-muted);
         font-size: 12px;
+        font-weight: 600;
         cursor: pointer;
-        max-width: 160px;
+        max-width: 170px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        transition: all .2s var(--ease-spring);
     }
  
     .pestana:hover{
-        background-color: #e0d9f7;
+        background-color: var(--primary-soft);
+        color: var(--text-main);
+        transform: translateY(-1px);
     }
  
     .pestana-activa{
-        background-color: var(--primary-color);
-        color: white;
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+        box-shadow: 0 4px 14px rgba(23, 34, 45, .15);
     }
  
     /* ---- Área de edición: barra superior + herramientas + imagen ---- */
@@ -53,14 +60,14 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
-        gap: 10px;
+        gap: 12px;
     }
  
     .area-imagen-y-herramientas{
         display: flex;
         flex: 1;
         min-height: 0;
-        gap: 12px;
+        gap: 14px;
     }
  
     /* ---- Barra superior: nombre/fecha + borrar mediciones + editar + exportar ---- */
@@ -71,10 +78,12 @@
         justify-content: space-between;
         gap: 12px;
         flex-wrap: wrap;
-        padding: 10px 14px;
-        background: var(--surface);
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, .88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid var(--border-soft);
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: var(--shadow-soft);
     }
  
@@ -106,32 +115,38 @@
         display: flex;
         align-items: center;
         gap: 7px;
-        padding: 9px 13px;
+        padding: 9px 14px;
         border: 1px solid var(--border-soft);
         border-radius: 9px;
         background: var(--surface);
-        color: #333;
+        color: var(--text-main);
         font-size: 12px;
         font-weight: 700;
         cursor: pointer;
         white-space: nowrap;
+        box-shadow: var(--shadow-soft);
+        transition: all .2s var(--ease-spring);
     }
  
     .boton-superior-visor:hover{
         border-color: var(--primary-color);
         color: var(--primary-color);
         background: var(--primary-soft);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-hover);
     }
  
     .boton-superior-activo{
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: #fff;
+        background: var(--accent-orange) !important;
+        border-color: var(--accent-orange) !important;
+        color: #fff !important;
+        box-shadow: 0 6px 18px rgba(238, 113, 53, .35) !important;
+        transform: translateY(-1px);
     }
  
     .boton-superior-activo:hover{
-        background: var(--primary-color);
-        color: #fff;
+        background: var(--accent-orange-hover) !important;
+        color: #fff !important;
     }
  
     .menu-exportar-visor{
@@ -141,44 +156,65 @@
     .menu-exportar-flecha{
         font-size: 9px;
         margin-left: 2px;
+        transition: transform .25s var(--ease-spring);
+    }
+
+    .menu-exportar-flecha.rotado{
+        transform: rotate(180deg);
     }
  
     .menu-exportar-opciones{
         position: absolute;
-        top: calc(100% + 6px);
+        top: calc(100% + 8px);
         right: 0;
         z-index: 20;
         display: flex;
         flex-direction: column;
         min-width: 210px;
         padding: 6px;
-        background: var(--surface);
+        background: rgba(255, 255, 255, .96);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         border: 1px solid var(--border-soft);
-        border-radius: 10px;
-        box-shadow: var(--shadow-hover);
+        border-radius: 12px;
+        box-shadow: var(--shadow-floating);
+        animation: dropdown-pop .2s var(--ease-spring) both;
     }
  
     .menu-exportar-opciones button{
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 9px 10px;
+        gap: 9px;
+        padding: 10px 12px;
         border: 0;
-        border-radius: 7px;
+        border-radius: 8px;
         background: transparent;
-        color: #333;
+        color: var(--text-main);
         font-size: 12px;
+        font-weight: 600;
         cursor: pointer;
         text-align: left;
+        transition: all .15s ease;
     }
  
     .menu-exportar-opciones button:hover{
         background: var(--primary-soft);
-        color: var(--primary-color);
+        color: var(--accent-orange);
+        transform: translateX(3px);
     }
  
     .aviso-pendiente-superior{
         margin: 0;
+        animation: toast-slide-down .35s var(--ease-spring) both;
+        background: rgba(255, 243, 214, .95) !important;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(154, 107, 0, .25);
+        box-shadow: var(--shadow-soft);
+        border-radius: 10px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
  
     .barra-herramientas-visor{
@@ -186,59 +222,70 @@
         flex-direction: column;
         gap: 8px;
         flex-shrink: 0;
-        padding: 10px 7px;
-        background: var(--surface);
+        padding: 10px 8px;
+        background: rgba(255, 255, 255, .94);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         border: 1px solid var(--border-soft);
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: var(--shadow-soft);
         height: fit-content;
+        animation: fade-in .3s var(--ease-spring) both;
     }
  
     .boton-herramienta{
         position: relative;
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
         display: grid;
         place-items: center;
         border: 1px solid transparent;
-        border-radius: 8px;
+        border-radius: 9px;
         background: transparent;
         color: var(--text-muted);
         cursor: pointer;
         font-size: 14px;
+        transition: all .2s var(--ease-spring);
     }
  
     .boton-herramienta:hover{
         background: var(--primary-soft);
         color: var(--primary-color);
+        transform: scale(1.06);
     }
  
     .boton-herramienta-activa{
-        background: var(--primary-color);
-        color: #fff;
+        background: var(--primary-color) !important;
+        color: #fff !important;
+        box-shadow: 0 4px 12px rgba(23, 34, 45, .25);
     }
  
     .boton-herramienta-activa:hover{
-        background: var(--primary-color);
-        color: #fff;
+        background: var(--primary-color) !important;
+        color: #fff !important;
     }
  
     .boton-color{
         margin-top: 6px;
         border-top: 1px solid var(--border-soft);
         padding-top: 14px;
-        border-radius: 8px 8px 0 0;
+        border-radius: 9px 9px 0 0;
     }
  
     .muestra-color{
         position: absolute;
-        bottom: 3px;
-        right: 3px;
-        width: 9px;
-        height: 9px;
+        bottom: 4px;
+        right: 4px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
-        border: 1px solid #fff;
-        box-shadow: 0 0 0 1px rgba(0,0,0,.15);
+        border: 1.5px solid #fff;
+        box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+        transition: transform .2s ease;
+    }
+
+    .boton-color:hover .muestra-color {
+        transform: scale(1.2);
     }
  
     .input-color-oculto{
@@ -253,19 +300,21 @@
         margin-top: 6px;
         border-top: 1px solid var(--border-soft);
         padding-top: 14px;
-        border-radius: 8px 8px 0 0;
+        border-radius: 9px 9px 0 0;
         color: #b3261e;
     }
  
     .boton-herramienta-borrar:hover{
         background: #fde2e2;
         color: #b3261e;
+        transform: scale(1.06);
     }
  
     .lienzo-imagen-visor{
         position: relative;
         display: inline-block;
         line-height: 0;
+        transition: transform .2s ease;
     }
  
     .lienzo-dibujando{
@@ -291,10 +340,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #111;
-        border-radius: 10px;
+        background-color: #0e1115;
+        border: 1px solid rgba(255, 255, 255, .08);
+        border-radius: 14px;
         padding: 20px;
         min-height: 320px;
+        box-shadow: inset 0 2px 14px rgba(0,0,0,.5);
     }
  
     .lienzo-imagen-visor img{
@@ -302,7 +353,8 @@
         max-width: 100%;
         max-height: 65vh;
         object-fit: contain;
-        border-radius: 4px;
+        border-radius: 6px;
+        box-shadow: 0 8px 30px rgba(0,0,0,.6);
     }
  
     .barra-temperatura{
@@ -310,14 +362,21 @@
         right: 20px;
         top: 20px;
         bottom: 20px;
-        width: 60px;
+        width: 64px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: space-between;
         color: white;
         font-size: 12px;
-        font-weight: bold;
+        font-weight: 700;
+        background: rgba(18, 22, 28, .75);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, .1);
+        border-radius: 12px;
+        padding: 12px 6px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
     }
  
     .gradiente-temperatura{
@@ -325,6 +384,7 @@
         width: 14px;
         margin: 8px 0;
         border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, .15);
         background: linear-gradient(
             to top,
             #000000 0%,
@@ -337,20 +397,26 @@
     }
  
     .temp-max{
-        color: #ffb199;
+        color: #ff9d82;
+        text-shadow: 0 1px 4px rgba(0,0,0,.8);
     }
  
     .temp-min{
-        color: #a8c4ff;
+        color: #9cbaff;
+        text-shadow: 0 1px 4px rgba(0,0,0,.8);
     }
  
     .visor-panel{
-        width: 300px;
+        width: 380px;
+        min-width: 340px;
+        max-width: 430px;
         flex-shrink: 0;
         background-color: var(--surface);
         border-left: 1px solid var(--border-soft);
-        padding: 20px;
+        padding: 22px;
         overflow-y: auto;
+        text-align: left;
+        box-sizing: border-box;
     }
  
     .visor-panel h4{
@@ -361,23 +427,34 @@
     }
  
     .info-imagen{
-        display: flex;
-        justify-content: space-between;
-        margin: 20px 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 18px 0;
         padding: 12px;
-        background-color: var(--primary-soft);
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(255, 240, 232, 0.7) 0%, rgba(251, 250, 244, 0.95) 100%);
+        border: 1px solid rgba(238, 113, 53, 0.2);
+        border-radius: 12px;
+        box-shadow: var(--shadow-soft);
+        text-align: center;
+        transition: transform .2s var(--ease-spring), box-shadow .2s ease;
+    }
+
+    .info-imagen:hover{
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-hover);
     }
  
     .info-imagen div{
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 2px;
     }
  
     .info-imagen strong{
-        font-size: 15px;
-        color: #333;
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--text-main);
     }
  
     .grupo-exportar{
@@ -443,15 +520,18 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 10px;
-        background-color: var(--primary-soft);
-        border-radius: 8px;
+        padding: 8px 12px;
+        background-color: var(--surface-muted);
+        border: 1px solid var(--border-soft);
+        border-radius: 9px;
         font-size: 12px;
-        transition: background-color .15s ease;
+        transition: all .2s var(--ease-spring);
     }
  
     .punto-medicion-item:hover{
-        background-color: #e0d9f7;
+        background-color: var(--primary-soft);
+        border-color: rgba(238, 113, 53, .3);
+        transform: translateX(3px);
     }
  
     .punto-medicion-color{
@@ -459,7 +539,7 @@
         height: 10px;
         border-radius: 50%;
         flex-shrink: 0;
-        box-shadow: 0 0 0 2px #fff;
+        box-shadow: 0 0 0 2px #fff, 0 1px 3px rgba(0,0,0,.2);
     }
  
     .punto-medicion-etiqueta{
@@ -525,37 +605,47 @@
  
     .tabla-editable{
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: var(--surface);
+        border: 1px solid var(--border-soft);
+        border-radius: 10px;
+        overflow: hidden;
         font-size: 12px;
         margin-bottom: 20px;
+        box-shadow: var(--shadow-soft);
     }
  
     .tabla-editable th{
         text-align: left;
-        padding: 4px;
+        padding: 8px 10px;
         color: var(--text-muted);
-        font-weight: 600;
+        font-weight: 700;
+        background-color: rgba(251, 250, 244, 0.7);
         border-bottom: 1px solid var(--border-soft);
     }
  
     .tabla-editable td{
-        padding: 2px;
-        border-bottom: 1px solid var(--border-soft);
+        padding: 4px 6px;
+        border-bottom: 1px solid rgba(23, 34, 45, 0.06);
     }
  
     .tabla-editable input{
         width: 100%;
-        border: none;
+        border: 1px solid transparent;
         background: transparent;
-        padding: 6px 4px;
+        padding: 6px 8px;
         font-size: 12px;
         color: var(--text-main);
+        border-radius: 6px;
         box-sizing: border-box;
+        transition: all .15s ease;
     }
  
     .tabla-editable input:focus{
-        background: var(--primary-soft);
-        border-radius: 4px;
+        background: var(--surface);
+        border-color: var(--accent-orange) !important;
+        box-shadow: 0 0 0 2px var(--focus-ring) !important;
         outline: none;
     }
  
@@ -575,4 +665,169 @@
         background: #fde2e2;
         border-radius: 4px;
     }
+
+    /* ---- Secciones Técnicas y Tablas de Parámetros/Información ---- */
+    .contenedor-seccion-tecnica {
+        margin: 20px 0;
+        text-align: left;
+    }
+
+    .encabezado-seccion-tecnica {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .6px;
+    }
+
+    .encabezado-seccion-tecnica i {
+        color: var(--accent-orange);
+        font-size: 12px;
+    }
+
+    .tabla-datos-tecnicos {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: var(--surface);
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .tabla-datos-tecnicos tr {
+        transition: background-color .15s ease;
+    }
+
+    .tabla-datos-tecnicos tr:not(:last-child) th,
+    .tabla-datos-tecnicos tr:not(:last-child) td {
+        border-bottom: 1px solid rgba(23, 34, 45, 0.07);
+    }
+
+    .tabla-datos-tecnicos tr:hover {
+        background-color: var(--surface-muted);
+    }
+
+    .tabla-datos-tecnicos th {
+        width: 44%;
+        padding: 9px 12px;
+        text-align: left;
+        color: var(--text-muted);
+        font-weight: 600;
+        background-color: rgba(251, 250, 244, 0.7);
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .tabla-datos-tecnicos td {
+        width: 56%;
+        padding: 9px 12px;
+        text-align: right;
+        color: var(--text-main);
+        font-weight: 600;
+        vertical-align: middle;
+        word-break: break-word;
+    }
+
+    .valor-mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 11.5px;
+        letter-spacing: -0.2px;
+    }
+
+    .valor-destacado {
+        color: var(--primary-color);
+        font-weight: 800;
+    }
+
+    .valor-coordenadas {
+        color: var(--accent-orange);
+        font-weight: 700;
+        font-size: 11px;
+    }
+
+    .valor-fecha {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    /* Stepper horizontal compacto para temperatura reflejada */
+    .stepper-temp-reflejada {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        background: var(--surface);
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,.05);
+        transition: border-color .2s ease;
+    }
+
+    .stepper-temp-reflejada:focus-within {
+        border-color: var(--accent-orange);
+        box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .btn-stepper {
+        width: 26px !important;
+        height: 26px !important;
+        min-width: 26px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: none !important;
+        background: transparent !important;
+        color: var(--text-main) !important;
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        transition: background-color .15s ease, color .15s ease !important;
+    }
+
+    .btn-stepper:hover {
+        background-color: var(--primary-soft) !important;
+        color: var(--accent-orange) !important;
+        transform: none !important;
+    }
+
+    .input-stepper {
+        width: 36px !important;
+        height: 26px !important;
+        border: none !important;
+        background: transparent !important;
+        text-align: center !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        color: var(--text-main) !important;
+        padding: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        -moz-appearance: textfield;
+    }
+
+    .input-stepper::-webkit-outer-spin-button,
+    .input-stepper::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .unidad-stepper {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        padding-right: 6px;
+        user-select: none;
+    }
+
  

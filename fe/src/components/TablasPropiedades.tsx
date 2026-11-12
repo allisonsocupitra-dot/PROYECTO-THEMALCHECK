@@ -1,14 +1,12 @@
 import React from "react";
 import { formatearTemperatura } from "../utils/temperaturas";
- 
+
 interface TablaParametrosProps {
   imagen: any;
-  onCambiarTempReflejada: (valor: number) => void;
-  // Contenido opcional que se renderiza justo debajo del cuadro Máx/Mín/ΔTemp
-  // y antes de la sección de Parámetros (ej. la lista de puntos de medición).
+  onCambiarTempReflejada?: (valor: number) => void;
   debajoDelCuadro?: React.ReactNode;
 }
- 
+
 export const TablaParametros: React.FC<TablaParametrosProps> = ({
   imagen,
   onCambiarTempReflejada,
@@ -16,146 +14,152 @@ export const TablaParametros: React.FC<TablaParametrosProps> = ({
 }) => {
   const temperaturaMax = Number(imagen?.temperaturaMax ?? 0);
   const temperaturaMin = Number(imagen?.temperaturaMin ?? 0);
- 
+
   const deltaTemp =
     imagen?.temperaturaMax != null && imagen?.temperaturaMin != null
       ? temperaturaMax - temperaturaMin
       : 0;
- 
+
+  const tempReflejadaActual = Number(imagen?.parametros?.tempReflejada ?? 20);
+
   return (
     <>
-      {/* Cuadro superior */}
+      {/* Telemetría rápida */}
       <div className="info-imagen">
         <div>
           <span className="texto-suave">Máx.</span>
           <strong>{formatearTemperatura(temperaturaMax)}°C</strong>
         </div>
- 
+
         <div>
           <span className="texto-suave">Mín.</span>
           <strong>{formatearTemperatura(temperaturaMin)}°C</strong>
         </div>
- 
+
         <div>
           <span className="texto-suave">ΔTemp</span>
           <strong>{formatearTemperatura(deltaTemp)}°C</strong>
         </div>
       </div>
- 
+
       {debajoDelCuadro}
- 
-      {/* Parámetros */}
-      <div className="visor-panel-seccion">
-        <h5>PARÁMETROS</h5>
- 
-        <div className="fila-parametro">
-          <span>Distancia</span>
-          <span>{imagen?.parametros?.distancia ?? "—"}</span>
+
+      {/* Tabla de Parámetros */}
+      <div className="contenedor-seccion-tecnica">
+        <div className="encabezado-seccion-tecnica">
+          <i className="fa-solid fa-sliders"></i>
+          <span>PARÁMETROS</span>
         </div>
- 
-        <div className="fila-parametro">
-          <span>Humedad</span>
-          <span>{imagen?.parametros?.humedad ?? "—"}</span>
-        </div>
- 
-        <div className="fila-parametro">
-          <span>Emisividad</span>
-          <span>{imagen?.parametros?.emisividad ?? "—"}</span>
-        </div>
- 
-        <div className="temp-reflejada">
-          <label>Temp. reflejada</label>
- 
-          <div className="temp-reflejada-control">
-            <button
-              onClick={() =>
-                onCambiarTempReflejada(
-                  Number(imagen?.parametros?.tempReflejada ?? 20) - 1
-                )
-              }
-            >
-              −
-            </button>
- 
-            <input
-              type="number"
-              value={imagen?.parametros?.tempReflejada ?? 20}
-              onChange={(e) =>
-                onCambiarTempReflejada(Number(e.target.value))
-              }
-            />
- 
-            <button
-              onClick={() =>
-                onCambiarTempReflejada(
-                  Number(imagen?.parametros?.tempReflejada ?? 20) + 1
-                )
-              }
-            >
-              +
-            </button>
-          </div>
-        </div>
+
+        <table className="tabla-datos-tecnicos">
+          <tbody>
+            <tr>
+              <th scope="row">Distancia</th>
+              <td>{imagen?.parametros?.distancia ? `${imagen.parametros.distancia} m` : "—"}</td>
+            </tr>
+            <tr>
+              <th scope="row">Humedad</th>
+              <td>{imagen?.parametros?.humedad ? `${imagen.parametros.humedad} %` : "—"}</td>
+            </tr>
+            <tr>
+              <th scope="row">Emisividad</th>
+              <td className="valor-mono">{imagen?.parametros?.emisividad ?? "—"}</td>
+            </tr>
+            <tr>
+              <th scope="row">Temp. reflejada</th>
+              <td>
+                {onCambiarTempReflejada ? (
+                  <div className="stepper-temp-reflejada">
+                    <button
+                      type="button"
+                      className="btn-stepper"
+                      onClick={() => onCambiarTempReflejada(tempReflejadaActual - 1)}
+                      title="Disminuir 1°C"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      className="input-stepper"
+                      value={tempReflejadaActual}
+                      onChange={(e) => onCambiarTempReflejada(Number(e.target.value))}
+                    />
+                    <span className="unidad-stepper">°C</span>
+                    <button
+                      type="button"
+                      className="btn-stepper"
+                      onClick={() => onCambiarTempReflejada(tempReflejadaActual + 1)}
+                      title="Aumentar 1°C"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <span className="valor-destacado">{tempReflejadaActual}°C</span>
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </>
   );
 };
- 
+
 interface TablaInfoImagenProps {
   imagen: any;
 }
- 
+
 export const TablaInfoImagen: React.FC<TablaInfoImagenProps> = ({ imagen }) => {
   const info = imagen?.infoImagen ?? {};
- 
+
   return (
-    <div className="visor-panel-seccion">
-      <h5>INFORMACIÓN DE LA IMAGEN</h5>
- 
-      <div className="fila-parametro">
-        <span>Modelo</span>
-        <span>{info.modelo ?? "M3T"}</span>
+    <div className="contenedor-seccion-tecnica">
+      <div className="encabezado-seccion-tecnica">
+        <i className="fa-solid fa-circle-info"></i>
+        <span>INFORMACIÓN DE LA IMAGEN</span>
       </div>
- 
-      <div className="fila-parametro">
-        <span>Número de serie</span>
-        <span>{info.numeroSerie ?? "—"}</span>
-      </div>
- 
-      <div className="fila-parametro">
-        <span>Distancia focal</span>
-        <span>{info.distanciaFocal ?? "9.1 mm"}</span>
-      </div>
- 
-      <div className="fila-parametro">
-        <span>Apertura</span>
-        <span>{info.apertura ?? "f/1"}</span>
-      </div>
- 
-      <div className="fila-parametro">
-        <span>Ancho</span>
-        <span>{info.ancho ?? 640}</span>
-      </div>
- 
-      <div className="fila-parametro">
-        <span>Alto</span>
-        <span>{info.alto ?? 512}</span>
-      </div>
- 
-      <div className="fila-parametro">
-        <span>Creado</span>
-        <span>{info.creado ?? "—"}</span>
-      </div>
- 
-      <div className="fila-parametro">
-        <span>Modificado</span>
-        <span>{info.modificado ?? "—"}</span>
-      </div>
- 
-      <div className="fila-parametro">
-        <span>Coordenadas</span>
-        <span>{info.coordenadas ?? "—"}</span>
-      </div>
+
+      <table className="tabla-datos-tecnicos">
+        <tbody>
+          <tr>
+            <th scope="row">Modelo</th>
+            <td><strong className="valor-destacado">{info.modelo ?? "M3T"}</strong></td>
+          </tr>
+          <tr>
+            <th scope="row">N.º de serie</th>
+            <td className="valor-mono">{info.numeroSerie ?? "—"}</td>
+          </tr>
+          <tr>
+            <th scope="row">Distancia focal</th>
+            <td>{info.distanciaFocal ?? "9.1 mm"}</td>
+          </tr>
+          <tr>
+            <th scope="row">Apertura</th>
+            <td>{info.apertura ?? "f/1"}</td>
+          </tr>
+          <tr>
+            <th scope="row">Dimensiones</th>
+            <td className="valor-mono">
+              {info.ancho && info.alto ? `${info.ancho} × ${info.alto} px` : "640 × 512 px"}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Fecha</th>
+            <td className="valor-fecha">
+              {info.modificado
+                ? new Date(info.modificado).toLocaleString()
+                : (info.creado ? new Date(info.creado).toLocaleString() : "—")}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Coordenadas</th>
+            <td className="valor-mono valor-coordenadas">
+              {info.coordenadas ?? "—"}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 };

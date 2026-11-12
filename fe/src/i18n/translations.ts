@@ -164,6 +164,7 @@ export const traducciones: Record<string, Entrada> = {
   'visor.editar': { es: 'Editar', en: 'Edit' },
   'visor.exportar': { es: 'Exportar', en: 'Export' },
   'visor.limpiarTodo': { es: 'Borrar todas las mediciones', en: 'Clear All Measurements' },
+  'visor.puntos.titulo': { es: 'Puntos de medición', en: 'Measurement points' },
 
   // Panel del visor — tabla de parámetros de captura (valores reales pendientes de backend)
   'visor.parametros.titulo': { es: 'Parámetros', en: 'Parameters' },

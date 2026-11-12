@@ -7,20 +7,35 @@
     padding: 20px;
     height: 128px;
     width: 128px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, .6);
+    box-shadow: var(--shadow-soft);
+    transition: all .25s var(--ease-spring);
 }
 
 .zona-carga:hover,
 .zona-carga-activa{
-    border-color: var(--primary-color);
+    border-color: var(--accent-orange);
     background-color: var(--primary-soft);
-    box-shadow: var(--shadow-soft);
-    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.zona-carga-activa {
+    border-style: solid;
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 4px var(--focus-ring), var(--shadow-hover);
 }
 
 .icono-carga{
-    font-size: 42px;
+    font-size: 38px;
     color: var(--primary-color);
-    margin-bottom: 10px;
     display: block;
+    transition: transform .25s var(--ease-spring), color .2s ease;
+}
+
+.zona-carga:hover .icono-carga,
+.zona-carga-activa .icono-carga {
+    color: var(--accent-orange);
+    transform: translateY(-2px);
 }

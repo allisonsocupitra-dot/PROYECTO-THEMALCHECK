@@ -8,24 +8,133 @@
   --text-main: #17222d;
   --text-muted: #64727c;
   --border-soft: #dddcd2;
-  --focus-ring: rgba(238, 113, 53, .2);
-  --shadow-soft: 0 12px 35px rgba(23, 34, 45, .08);
-  --shadow-hover: 0 16px 38px rgba(23, 34, 45, .14);
+  --focus-ring: rgba(238, 113, 53, .25);
+  --shadow-soft: 0 8px 24px rgba(23, 34, 45, .06), 0 2px 6px rgba(23, 34, 45, .03);
+  --shadow-hover: 0 14px 34px rgba(23, 34, 45, .11), 0 4px 10px rgba(23, 34, 45, .05);
+  --shadow-floating: 0 20px 40px -6px rgba(23, 34, 45, .16), 0 8px 16px -4px rgba(23, 34, 45, .08);
+  
+  /* Acentos de marca */
+  --accent-orange: #ee7135;
+  --accent-orange-hover: #d85d22;
+  --accent-orange-soft: rgba(238, 113, 53, .12);
+  
+  /* Curvas de animación fluidas */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slide-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* Keyframes de animación */
+@keyframes fade-in { 
+  from { opacity: 0; } 
+  to { opacity: 1; } 
+}
 
-.fade-in { animation: fade-in .4s ease both; }
-.slide-up { animation: slide-up .5s cubic-bezier(.2, .7, .2, 1) both; }
-.route-view { min-height: 100%; animation: fade-in .3s ease both; }
+@keyframes slide-up { 
+  from { 
+    opacity: 0; 
+    transform: translateY(16px); 
+  } 
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  } 
+}
 
-button, input, a { transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
-input:focus { border-color: var(--primary-color) !important; box-shadow: 0 0 0 4px var(--focus-ring); }
-.loader { width: 18px; height: 18px; display: inline-block; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes dropdown-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-slide-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.96); }
+}
+
+@keyframes spin { 
+  to { transform: rotate(360deg); } 
+}
+
+/* Clases de utilidad de animación */
+.fade-in { animation: fade-in .35s var(--ease-smooth) both; }
+.slide-up { animation: slide-up .45s var(--ease-spring) both; }
+.route-view { min-height: 100%; animation: fade-in .3s var(--ease-smooth) both; }
+
+/* Micro-interacciones globales suaves */
+button, input, a, select, textarea { 
+  transition: color .2s var(--ease-smooth), 
+              background-color .2s var(--ease-smooth), 
+              border-color .2s var(--ease-smooth), 
+              box-shadow .25s var(--ease-smooth), 
+              transform .2s var(--ease-spring); 
+}
+
+/* Sensación táctil al presionar botones */
+button:active:not(:disabled) {
+  transform: scale(0.97) !important;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible { 
+  outline: 3px solid var(--focus-ring); 
+  outline-offset: 2px; 
+}
+
+input:focus { 
+  border-color: var(--accent-orange) !important; 
+  box-shadow: 0 0 0 4px var(--focus-ring) !important; 
+}
+
+.loader { 
+  width: 18px; 
+  height: 18px; 
+  display: inline-block; 
+  border: 2px solid currentColor; 
+  border-right-color: transparent; 
+  border-radius: 50%; 
+  animation: spin .7s linear infinite; 
+}
+
+/* Scrollbar moderna, limpia y delgada */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(23, 34, 45, 0.16);
+  border-radius: 999px;
+  transition: background .2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(23, 34, 45, 0.3);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  *, *::before, *::after { 
+    animation-duration: .01ms !important; 
+    animation-iteration-count: 1 !important; 
+    scroll-behavior: auto !important; 
+    transition-duration: .01ms !important; 
+  }
 }

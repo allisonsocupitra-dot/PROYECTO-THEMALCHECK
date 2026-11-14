@@ -7,6 +7,20 @@ export interface ErrorImagen {
  
 // Forma cruda que devuelve el backend (ImagenTermograficaOut). Se asume que
 // expone estos nombres de columna; ajusta aquí si tu schema real difiere.
+interface PuntoMedicionCrudo {
+  id_punto?: number;
+  etiqueta: string;
+  tipo?: string | null;
+  valor_temp?: number | null;
+  valor_min?: number | null;
+  valor_avg?: number | null;
+  valor_max?: number | null;
+  pos_min_x?: number | null;
+  pos_min_y?: number | null;
+  pos_max_x?: number | null;
+  pos_max_y?: number | null;
+}
+
 interface ImagenTermograficaOutCruda {
   id_imagen: number;
   temperatura_min?: number | null;
@@ -23,7 +37,7 @@ interface ImagenTermograficaOutCruda {
   alto?: number | null;
   fecha_modificacion?: string | null;
   coordenadas?: string | null;
-  puntos_medicion?: Array<{ id_punto?: number; etiqueta: string; valor_temp: number }>;
+  puntos_medicion?: PuntoMedicionCrudo[];
 }
  
 export interface ImagenAnalizada {
@@ -35,6 +49,18 @@ export interface ImagenAnalizada {
   puntos: PuntoMedicionGuardado[];
 }
  
+const mapearPunto = (p: PuntoMedicionCrudo): PuntoMedicionGuardado => ({
+  id: p.id_punto,
+  etiqueta: p.etiqueta,
+  tipo: p.tipo === 'region' ? 'region' : 'punto',
+  valorTemp: p.valor_temp ?? 0,
+  valorMin: p.valor_min ?? null,
+  valorAvg: p.valor_avg ?? null,
+  valorMax: p.valor_max ?? null,
+  posMin: p.pos_min_x != null && p.pos_min_y != null ? { x: p.pos_min_x, y: p.pos_min_y } : null,
+  posMax: p.pos_max_x != null && p.pos_max_y != null ? { x: p.pos_max_x, y: p.pos_max_y } : null,
+});
+
 const mapearImagenCruda = (datos: ImagenTermograficaOutCruda): ImagenAnalizada => ({
   idBackend: datos.id_imagen,
   temperaturaMin: datos.temperatura_min ?? null,
@@ -55,11 +81,7 @@ const mapearImagenCruda = (datos: ImagenTermograficaOutCruda): ImagenAnalizada =
     modificado: datos.fecha_modificacion ?? undefined,
     coordenadas: datos.coordenadas ?? undefined,
   },
-  puntos: (datos.puntos_medicion ?? []).map((p) => ({
-    id: p.id_punto,
-    etiqueta: p.etiqueta,
-    valorTemp: p.valor_temp,
-  })),
+  puntos: (datos.puntos_medicion ?? []).map(mapearPunto),
 });
  
 // POST /imagenes/upload — sube el archivo físico y devuelve el análisis inicial
@@ -120,14 +142,35 @@ export const actualizarTemperaturaReflejada = async (
  
 export interface PuntoAGuardar {
   etiqueta: string;
+  // 'punto' (por defecto) o 'region' (rectángulo).
+  tipo?: 'punto' | 'region';
   valorTemp: number;
   // Coordenadas en píxeles sobre la imagen ORIGINAL (no el % de pantalla).
-  // Si vienen, el backend recalcula la temperatura real con la matriz DJI.
+  // Para un punto: x, y. Para una región: x1, y1 (esquina superior izquierda)
+  // y x2, y2 (esquina inferior derecha). Si vienen, el backend recalcula la
+  // temperatura real con la matriz DJI.
   x?: number;
   y?: number;
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number;
 }
+
+const serializarPunto = (p: PuntoAGuardar) => ({
+  etiqueta: p.etiqueta,
+  tipo: p.tipo ?? 'punto',
+  valor_temp: p.valorTemp,
+  x: p.x ?? null,
+  y: p.y ?? null,
+  x1: p.x1 ?? null,
+  y1: p.y1 ?? null,
+  x2: p.x2 ?? null,
+  y2: p.y2 ?? null,
+});
  
-// PUT /imagenes/{id_imagen}/puntos — reemplaza todos los puntos de medición.
+// PUT /imagenes/{id_imagen}/puntos — reemplaza todos los puntos de medición
+// (puntos y regiones) de la imagen. Siempre hay que mandar la lista completa.
 export const guardarPuntosMedicion = async (
   idBackend: number,
   puntos: PuntoAGuardar[]
@@ -135,14 +178,7 @@ export const guardarPuntosMedicion = async (
   const respuesta = await fetch(`${API_BASE_URL}/api/v1/imagenes/${idBackend}/puntos`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      puntos: puntos.map((p) => ({
-        etiqueta: p.etiqueta,
-        valor_temp: p.valorTemp,
-        x: p.x ?? null,
-        y: p.y ?? null,
-      })),
-    }),
+    body: JSON.stringify({ puntos: puntos.map(serializarPunto) }),
   });
  
   if (!respuesta.ok) {
@@ -159,14 +195,7 @@ export const exportarPdfInforme = async (idBackend: number, puntos: PuntoAGuarda
   const respuesta = await fetch(`${API_BASE_URL}/api/v1/imagenes/${idBackend}/exportar-pdf`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      puntos: puntos.map((p) => ({
-        etiqueta: p.etiqueta,
-        valor_temp: p.valorTemp,
-        x: p.x ?? null,
-        y: p.y ?? null,
-      })),
-    }),
+    body: JSON.stringify({ puntos: puntos.map(serializarPunto) }),
   });
  
   if (!respuesta.ok) {
@@ -176,4 +205,3 @@ export const exportarPdfInforme = async (idBackend: number, puntos: PuntoAGuarda
  
   return respuesta.blob();
 };
- 

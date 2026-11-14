@@ -21,11 +21,26 @@ export interface InfoImagen {
   coordenadas?: string;
 }
  
+// Posición de un píxel sobre la imagen ORIGINAL (no en % de pantalla).
+export interface PosicionPixel {
+  x: number;
+  y: number;
+}
+
 // Punto de medición ya guardado en el backend (tabla punto_medicion).
+// tipo 'punto' → usa valorTemp.
+// tipo 'region' (rectángulo) → usa valorMin / valorAvg / valorMax y las posiciones
+// del píxel más frío (posMin) y más caliente (posMax) dentro de la región.
 export interface PuntoMedicionGuardado {
   id?: number;
   etiqueta: string;
+  tipo?: 'punto' | 'region';
   valorTemp: number;
+  valorMin?: number | null;
+  valorAvg?: number | null;
+  valorMax?: number | null;
+  posMin?: PosicionPixel | null;
+  posMax?: PosicionPixel | null;
 }
  
 export interface ImagenCargada {
@@ -56,4 +71,3 @@ export interface Carpeta {
   subcarpetas: Carpeta[];
   parentId?: string | null;
 }
- 

@@ -27,7 +27,7 @@ CREATE TABLE informe (
 
 CREATE TABLE imagen_termografica (
     id_imagen INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_archivo VARCHAR(300) NOT NULL,
+    ruta_archivo VARCHAR(500),
     fecha_modificacion DATETIME,
     ancho INT,
     alto INT,
@@ -51,8 +51,22 @@ CREATE TABLE imagen_termografica (
 CREATE TABLE punto_medicion (
     id_punto INT AUTO_INCREMENT PRIMARY KEY,
     etiqueta VARCHAR(20),
-    valor_temp DECIMAL(6,2),
-    id_imagen INT
+    valor_temp DECIMAL(6,2) NULL,
+    id_imagen INT,
+    tipo ENUM('punto','region') NOT NULL DEFAULT 'punto',
+    x INT NULL,
+    y INT NULL,
+    x1 INT NULL,
+    y1 INT NULL,
+    x2 INT NULL,
+    y2 INT NULL,
+    valor_min DECIMAL(6,2) NULL,
+    valor_avg DECIMAL(6,2) NULL,
+    valor_max DECIMAL(6,2) NULL,
+    pos_min_x INT NULL,
+    pos_min_y INT NULL,
+    pos_max_x INT NULL,
+    pos_max_y INT NULL;
 );
 
 
@@ -82,10 +96,8 @@ SELECT * FROM usuario;
 
 SELECT * FROM punto_medicion
 
-
-USE thermalcheck;
-
-ALTER TABLE punto_medicion
+/*por si no les funciona*/
+/*ALTER TABLE punto_medicion
 ADD COLUMN tipo ENUM('punto','region') NOT NULL DEFAULT 'punto',
 ADD COLUMN x INT NULL,
 ADD COLUMN y INT NULL,
@@ -107,5 +119,4 @@ ALTER TABLE punto_medicion
   ADD COLUMN pos_min_x INT NULL,
   ADD COLUMN pos_min_y INT NULL,
   ADD COLUMN pos_max_x INT NULL,
-  ADD COLUMN pos_max_y INT NULL;
- 
+  ADD COLUMN pos_max_y INT NULL;*/

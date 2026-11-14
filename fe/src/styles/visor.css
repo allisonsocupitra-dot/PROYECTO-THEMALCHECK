@@ -73,6 +73,8 @@
     /* ---- Barra superior: nombre/fecha + borrar mediciones + editar + exportar ---- */
  
     .barra-superior-visor{
+        position: relative;   /* FIX menú Exportar */
+        z-index: 30;          /* FIX menú Exportar */
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -830,4 +832,40 @@
         user-select: none;
     }
 
- 
+    /* Tarjeta de un rectángulo medido: Máx. / Mín. / Avg., con el mismo aire
+       que el cuadro Máx/Mín/ΔTemp de la imagen. */
+
+    .zona-medicion {
+      padding: 12px 14px;
+      border: 1px solid #f1dccb;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #fff4ea 0%, #fdf8f1 100%);
+    }
+
+    .zona-medicion-titulo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .zona-medicion-valores {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      text-align: center;
+    }
+
+    .zona-medicion-dato span {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      color: #7a7a7a;
+    }
+
+    .zona-medicion-dato strong {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1c1c1c;
+    }

@@ -1,5 +1,4 @@
 import React from "react";
-import { formatearTemperatura } from "../utils/temperaturas";
 
 interface TablaParametrosProps {
   imagen: any;
@@ -12,36 +11,11 @@ export const TablaParametros: React.FC<TablaParametrosProps> = ({
   onCambiarTempReflejada,
   debajoDelCuadro,
 }) => {
-  const temperaturaMax = Number(imagen?.temperaturaMax ?? 0);
-  const temperaturaMin = Number(imagen?.temperaturaMin ?? 0);
-
-  const deltaTemp =
-    imagen?.temperaturaMax != null && imagen?.temperaturaMin != null
-      ? temperaturaMax - temperaturaMin
-      : 0;
-
   const tempReflejadaActual = Number(imagen?.parametros?.tempReflejada ?? 20);
 
   return (
     <>
-      {/* Telemetría rápida */}
-      <div className="info-imagen">
-        <div>
-          <span className="texto-suave">Máx.</span>
-          <strong>{formatearTemperatura(temperaturaMax)}°C</strong>
-        </div>
-
-        <div>
-          <span className="texto-suave">Mín.</span>
-          <strong>{formatearTemperatura(temperaturaMin)}°C</strong>
-        </div>
-
-        <div>
-          <span className="texto-suave">ΔTemp</span>
-          <strong>{formatearTemperatura(deltaTemp)}°C</strong>
-        </div>
-      </div>
-
+      {/* Lista de puntos de medición (SP#, R#...) que inyecta VisorPage */}
       {debajoDelCuadro}
 
       {/* Tabla de Parámetros */}
@@ -163,4 +137,3 @@ export const TablaInfoImagen: React.FC<TablaInfoImagenProps> = ({ imagen }) => {
     </div>
   );
 };
- 

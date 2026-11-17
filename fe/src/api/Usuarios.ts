@@ -9,10 +9,10 @@ export interface ErrorAuth {
   mensaje?: string;
 }
 
-// El backend usa id_rol numérico y nombres de rol capitalizados en la tabla `rol`.
+// Debe coincidir con la tabla `rol`: 1 = Tecnico, 2 = Administrador.
 const ID_POR_ROL: Record<Rol, number> = {
-  admin: 1,
-  tecnico: 2,
+  tecnico: 1,
+  admin: 2,
 };
 
 const ROL_POR_NOMBRE: Record<string, Rol> = {
@@ -41,7 +41,7 @@ export const iniciarSesion = async (correo: string, contraseña: string, rol: Ro
     const cuerpo = await respuesta.json().catch(() => null);
     if (respuesta.status === 403) {
       const idReal = Number(cuerpo?.detail?.match(/id_rol=(\d+)/)?.[1]);
-      const error: ErrorAuth = { codigo: 'rol', rolReal: idReal === 1 ? 'admin' : 'tecnico', mensaje: cuerpo?.detail };
+      const error: ErrorAuth = { codigo: 'rol', rolReal: idReal === 2 ? 'admin' : 'tecnico', mensaje: cuerpo?.detail };
       throw error;
     }
     const error: ErrorAuth = { codigo: 'credenciales', mensaje: cuerpo?.detail };

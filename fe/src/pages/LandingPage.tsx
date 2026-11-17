@@ -14,7 +14,7 @@ const LandingPage: React.FC = () => {
           <img src={logo} alt="" />
           <span>ThermalCheck</span>
         </Link>
-        <Link className="landing-login-link" to="/auth">
+        <Link className="landing-login-link" to="/login">
           {t('landing.iniciar')}
         </Link>
       </header>
@@ -24,7 +24,7 @@ const LandingPage: React.FC = () => {
           <p className="landing-eyebrow">{t('landing.etiqueta')}</p>
           <h1>Thermal<span>Check</span></h1>
           <p className="landing-description">{t('landing.descripcion')}</p>
-          <Link className="landing-cta" to="/auth">
+          <Link className="landing-cta" to="/login">
             {t('landing.comenzar')} <span aria-hidden="true">-&gt;</span>
           </Link>
         </div>

@@ -78,6 +78,8 @@ ALTER TABLE usuario
 
 ALTER TABLE informe
     ADD CONSTRAINT fk_informe_usuario
-    FOREIGN KEY (id_usuario)
+    FOREIGN KEY (id_usuario);
     
-SELECT * FROM punto_medicion ORDER BY id_punto DESC LIMIT 5;
+INSERT INTO rol (tipo_rol) VALUES
+  ('Tecnico'),
+  ('Administrador');

@@ -110,7 +110,7 @@ const LoginPage: React.FC = () => {
 
             <div className="enlace-registro">
               <p>
-                {t('login.sinCuenta')} <Link to="/register">{t('login.registrate')}</Link>
+                {t('login.sinCuenta')} <Link to="/registro">{t('login.registrate')}</Link>
               </p>
             </div>
           </form>

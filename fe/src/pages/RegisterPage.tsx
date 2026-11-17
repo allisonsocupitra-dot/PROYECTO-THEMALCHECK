@@ -141,7 +141,7 @@ const RegisterPage: React.FC = () => {
 
             <div className="enlace-registro">
               <p>
-                {t('register.yaTienes')} <Link to="/auth">{t('register.inicia')}</Link>
+                {t('register.yaTienes')} <Link to="/login">{t('register.inicia')}</Link>
               </p>
             </div>
           </form>
@@ -152,7 +152,7 @@ const RegisterPage: React.FC = () => {
         abierto={mostrarConfirmacion}
         titulo={t('confirmacion.registroTitulo')}
         mensaje={t('confirmacion.registroMensaje')}
-        onContinuar={() => navigate('/auth')}
+        onContinuar={() => navigate('/login')}
       />
 
       <footer className="footer">{t('footer.texto')}</footer>

@@ -1,14 +1,10 @@
-// src/api/Informes.ts
+// src/api/Busqueda.ts
 import { API_BASE_URL } from './Config';
 
-// Prefijo real con que informe.py está incluido en api.py:
-// api_router.include_router(informe.router, prefix="/informes", tags=["Informe"])
-// y api_router a su vez se monta en main.py con prefix="/api/v1"
+// api_router.include_router(busqueda.router, prefix="/informes") y api_router se monta con prefix="/api/v1"
 const BASE_URL = `${API_BASE_URL}/api/v1/informes`;
 
-// URL base donde FastAPI sirve los archivos estáticos (StaticFiles).
-// Ojo: los StaticFiles normalmente se montan directo en `app`, NO bajo /api/v1
-// (confirma esto en main.py: app.mount("/uploads", StaticFiles(...))).
+// FastAPI sirve los PDFs con StaticFiles montado en /uploads (confirma en main.py)
 const BASE_ARCHIVOS = `${API_BASE_URL}/uploads`;
 
 export interface TecnicoConInformes {
@@ -29,7 +25,7 @@ export interface Informe {
   id_usuario: number;
 }
 
-// GET /informes/tecnicos?busqueda=...
+// GET /api/v1/informes/tecnicos?busqueda=...
 export const listarTecnicosConInformes = async (
   busqueda?: string
 ): Promise<TecnicoConInformes[]> => {
@@ -43,7 +39,7 @@ export const listarTecnicosConInformes = async (
   return respuesta.json();
 };
 
-// GET /informes/tecnicos/{id_usuario}/informes
+// GET /api/v1/informes/tecnicos/{id_usuario}/informes
 export const listarInformesPorTecnico = async (idUsuario: number): Promise<Informe[]> => {
   const respuesta = await fetch(`${BASE_URL}/tecnicos/${idUsuario}/informes`);
   if (!respuesta.ok) {
@@ -52,23 +48,36 @@ export const listarInformesPorTecnico = async (idUsuario: number): Promise<Infor
   return respuesta.json();
 };
 
-// ruta_pdf ya viene como el path relativo servido por StaticFiles bajo /uploads,
+// ruta_pdf es relativa a la carpeta servida en /uploads,
 // por ejemplo "termograficas/informes/abc123.pdf" -> "/uploads/termograficas/informes/abc123.pdf"
 export const construirUrlDescargaInforme = (rutaPdf: string): string => {
   const rutaLimpia = rutaPdf.replace(/^\/+/, '');
   return `${BASE_ARCHIVOS}/${rutaLimpia}`;
 };
 
-// Dispara la descarga del PDF ya generado (no vuelve a llamar al backend
-// para regenerarlo; usa el archivo estático servido por FastAPI).
-export const descargarInforme = (informe: Informe): void => {
-  const url = construirUrlDescargaInforme(informe.ruta_pdf);
-  const enlace = document.createElement('a');
-  enlace.href = url;
-  enlace.download = informe.nombre_archivo || `informe-${informe.id_informe}.pdf`;
-  enlace.target = '_blank';
-  enlace.rel = 'noopener';
-  document.body.appendChild(enlace);
-  enlace.click();
-  enlace.remove();
+// Descarga el PDF ya generado: lo baja como archivo y fuerza el guardado,
+// porque el atributo `download` no funciona entre orígenes distintos (5173 -> 8000).
+export const descargarInforme = async (informe: Informe): Promise<void> => {
+  try {
+    const respuesta = await fetch(construirUrlDescargaInforme(informe.ruta_pdf));
+    if (!respuesta.ok) {
+      throw new Error(`No se pudo descargar el archivo (${respuesta.status})`);
+    }
+
+    const blob = await respuesta.blob();
+    const urlTemporal = URL.createObjectURL(blob);
+
+    const nombre = informe.nombre_archivo || `informe-${informe.id_informe}`;
+    const enlace = document.createElement('a');
+    enlace.href = urlTemporal;
+    enlace.download = nombre.toLowerCase().endsWith('.pdf') ? nombre : `${nombre}.pdf`;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+
+    URL.revokeObjectURL(urlTemporal);
+  } catch (error) {
+    console.error(error);
+    window.alert('No se pudo descargar el informe. Verifica que el archivo exista en el servidor.');
+  }
 };

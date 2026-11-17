@@ -33,6 +33,9 @@ class PuntoMedicionCreate(BaseModel):
     pos_max_x: Optional[int] = None
     pos_max_y: Optional[int] = None
 
+    # Color con el que se dibujó la figura en el visor
+    color: Optional[str] = None
+
 
 class PuntoMedicionOut(BaseModel):
     id_punto: int
@@ -53,14 +56,17 @@ class PuntoMedicionOut(BaseModel):
     pos_min_y: Optional[int] = None
     pos_max_x: Optional[int] = None
     pos_max_y: Optional[int] = None
+    color: Optional[str] = None
 
     class Config:
         from_attributes = True
 
 
 class PuntosMedicionGuardar(BaseModel):
-    """Lo que el frontend envía al dar 'Guardar' o al exportar el PDF."""
+    """Lo que el frontend envía al dar 'Guardar', al dibujar una figura o al exportar el PDF."""
     puntos: List[PuntoMedicionCreate]
+    # Notas del visor; si no viene, las observaciones guardadas no se tocan.
+    observaciones: Optional[str] = None
 
 
 class ImagenTermograficaOut(BaseModel):
@@ -82,6 +88,7 @@ class ImagenTermograficaOut(BaseModel):
     temp_reflejada: Optional[float] = None
     temp_max: Optional[float] = None
     temp_min: Optional[float] = None
+    observaciones: Optional[str] = None
     puntos_medicion: List[PuntoMedicionOut] = []
 
     class Config:

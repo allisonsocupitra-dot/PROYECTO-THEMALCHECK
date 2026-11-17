@@ -1,5 +1,5 @@
 export type UnidadTemperatura = 'C' | 'F';
- 
+
 // Parámetros de captura térmica (distancia, humedad, emisividad, temp. reflejada).
 // Vienen del backend (imagen_termografica) una vez la imagen fue subida y analizada.
 export interface ParametrosTermicos {
@@ -8,7 +8,7 @@ export interface ParametrosTermicos {
   emisividad?: string;
   temperaturaReflejada?: string;
 }
- 
+
 // Metadatos EXIF / de cámara de la imagen. Vienen del backend igual que arriba.
 export interface InfoImagen {
   modelo?: string;
@@ -20,7 +20,7 @@ export interface InfoImagen {
   modificado?: string;
   coordenadas?: string;
 }
- 
+
 // Posición de un píxel sobre la imagen ORIGINAL (no en % de pantalla).
 export interface PosicionPixel {
   x: number;
@@ -28,9 +28,10 @@ export interface PosicionPixel {
 }
 
 // Punto de medición ya guardado en el backend (tabla punto_medicion).
-// tipo 'punto' → usa valorTemp.
-// tipo 'region' (rectángulo) → usa valorMin / valorAvg / valorMax y las posiciones
-// del píxel más frío (posMin) y más caliente (posMax) dentro de la región.
+// tipo 'punto' → usa valorTemp y las coordenadas x, y.
+// tipo 'region' (rectángulo o círculo) → usa valorMin / valorAvg / valorMax, la caja
+// x1, y1, x2, y2 y las posiciones del píxel más frío (posMin) y más caliente (posMax).
+// La etiqueta distingue la figura: SP# punto, R# rectángulo, C# círculo.
 export interface PuntoMedicionGuardado {
   id?: number;
   etiqueta: string;
@@ -41,8 +42,15 @@ export interface PuntoMedicionGuardado {
   valorMax?: number | null;
   posMin?: PosicionPixel | null;
   posMax?: PosicionPixel | null;
+  x?: number | null;
+  y?: number | null;
+  x1?: number | null;
+  y1?: number | null;
+  x2?: number | null;
+  y2?: number | null;
+  color?: string | null;
 }
- 
+
 export interface ImagenCargada {
   id: string;
   archivo: File;
@@ -60,8 +68,10 @@ export interface ImagenCargada {
   subiendo?: boolean;
   errorSubida?: string;
   puntos?: PuntoMedicionGuardado[];
+  // Notas de la imagen (tabla clave/valor serializada como JSON en la BD).
+  observaciones?: string;
 }
- 
+
 export interface Carpeta {
   id: string;
   nombre: string;

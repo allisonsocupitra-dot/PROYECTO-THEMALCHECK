@@ -1,58 +1,72 @@
-import React from 'react';
-import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
 import { LanguageProvider } from './context/LanguageContext';
+import { AuthProvider } from './context/AuthContext';
 import { GaleriaProvider } from './context/GaleriaContext';
-import { VisorProvider } from './context/VisorContext';
+
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './pages/LoginPage';
+
 import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import RecuperarPage from './pages/RecuperarPage';
 import RestablecerPage from './pages/RestablecerPage';
 import DashboardPage from './pages/DashboardPage';
 import VisorPage from './pages/VisorPage';
-import MisReportesPage from './pages/ReportesPage';
-import AdminReportsPage from './pages/AdminPage';
+import ReportesPage from './pages/ReportesPage';
+import AdminPage from './pages/AdminPage';
 
-// Layout raíz: los providers viven aquí (dentro del router) y las páginas
-// se pintan en el <Outlet />.
-const Layout: React.FC = () => {
-  const location = useLocation();
-
-  return (
-    <AuthProvider>
-      <LanguageProvider>
-        <GaleriaProvider>
-          <VisorProvider>
-            <div className="route-view" key={location.pathname}>
-              <Outlet />
-            </div>
-          </VisorProvider>
-        </GaleriaProvider>
-      </LanguageProvider>
-    </AuthProvider>
-  );
-};
-
+// AJUSTA: los paths según los que ya usas en NavLateral y en tus navigate(...)
 const router = createBrowserRouter([
+  { path: '/', element: <LandingPage /> },
+  { path: '/login', element: <LoginPage /> },
+  { path: '/registro', element: <RegisterPage /> },
+  { path: '/recuperar', element: <RecuperarPage /> },
+  { path: '/restablecer-contrasena', element: <RestablecerPage /> },
   {
-    element: <Layout />,
-    children: [
-      { path: '/', element: <LandingPage /> },
-      { path: '/auth', element: <LoginPage /> },
-      { path: '/register', element: <RegisterPage /> },
-      { path: '/recuperar', element: <RecuperarPage /> },
-      { path: '/restablecer-contrasena', element: <RestablecerPage /> },
-
-      { path: '/dashboard', element: <ProtectedRoute rolesPermitidos={['tecnico', 'admin']}><DashboardPage /></ProtectedRoute> },
-      { path: '/visor', element: <ProtectedRoute rolesPermitidos={['tecnico', 'admin']}><VisorPage /></ProtectedRoute> },
-      { path: '/mis-reportes', element: <ProtectedRoute rolesPermitidos={['tecnico', 'admin']}><MisReportesPage /></ProtectedRoute> },
-      { path: '/admin/reportes', element: <ProtectedRoute rolesPermitidos={['admin']}><AdminReportsPage /></ProtectedRoute> },
-    ],
+    path: '/dashboard',
+    element: (
+      <ProtectedRoute>
+        <DashboardPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/visor',
+    element: (
+      <ProtectedRoute>
+        <VisorPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/reportes',
+    element: (
+      <ProtectedRoute>
+        <ReportesPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin',
+    element: (
+      // AJUSTA: el valor real del rol admin. Si aún no tienes claro el campo
+      // del rol, quita la prop rolesPermitidos y deja solo <ProtectedRoute>.
+      <ProtectedRoute rolesPermitidos={['admin']}>
+        <AdminPage />
+      </ProtectedRoute>
+    ),
   },
 ]);
 
-const App: React.FC = () => <RouterProvider router={router} />;
-
-export default App;
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AuthProvider>
+        <GaleriaProvider>
+          <RouterProvider router={router} />
+        </GaleriaProvider>
+      </AuthProvider>
+    </LanguageProvider>
+  );
+}

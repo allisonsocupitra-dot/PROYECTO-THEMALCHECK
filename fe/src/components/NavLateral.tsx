@@ -33,21 +33,16 @@ const NavLateral: React.FC = () => {
         <i className="fa-regular fa-file"></i>
       </Link>
 
-      <Link to="/mis-reportes" className={esActivo('/mis-reportes') ? 'nav-activo' : ''} title={t('nav.misReportes')}>
+      <Link to="/reportes" className={esActivo('/reportes') ? 'nav-activo' : ''} title={t('nav.misReportes')}>
         <i className="fa-solid fa-clipboard-list"></i>
       </Link>
 
       {usuario?.rol === 'admin' && (
-        <Link
-          to="/admin/reportes"
-          className={esActivo('/admin/reportes') ? 'nav-activo' : ''}
-          title={t('nav.reportes')}
-        >
+        <Link to="/admin" className={esActivo('/admin') ? 'nav-activo' : ''} title={t('nav.reportes')}>
           <i className="fa-solid fa-users"></i>
         </Link>
       )}
 
-      {/* Ajustes ya no navega a otra página: abre una ventana emergente */}
       <button
         className="boton-nav-lateral"
         type="button"

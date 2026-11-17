@@ -1,5 +1,9 @@
 export type UnidadTemperatura = 'C' | 'F';
 
+// Temp. reflejada que usa el backend si la imagen no tiene una guardada
+// (debe coincidir con TEMP_REFLEJADA_DEFECTO en be/api/v1/endpoints/visor/comun.py)
+export const TEMP_REFLEJADA_POR_DEFECTO = 23;
+
 export const detectarUnidadTemperatura = (
   valor?: string | null,
   fallback: UnidadTemperatura = 'C'

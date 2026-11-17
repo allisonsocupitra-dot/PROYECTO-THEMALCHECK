@@ -1,27 +1,27 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import type { Rol } from '../types/auth';
 
 interface ProtectedRouteProps {
-  rolesPermitidos: Rol[];
-  children: React.ReactNode;
+  children?: ReactNode;
+  // Opcional: si se pasa, solo entran usuarios cuyo rol esté en la lista.
+  rolesPermitidos?: string[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ rolesPermitidos, children }) => {
-  const { usuario, estaAutenticado } = useAuth();
+export default function ProtectedRoute({ children, rolesPermitidos }: ProtectedRouteProps) {
+  const { usuario } = useAuth();
 
-  if (!estaAutenticado || !usuario) {
-    return <Navigate to="/" replace />;
+  if (!usuario) {
+    return <Navigate to="/login" replace />;
   }
 
-  if (!rolesPermitidos.includes(usuario.rol)) {
-    // El usuario está logueado pero no tiene el rol adecuado para esta ruta:
-    // lo mandamos a su panel correspondiente en vez de mostrar un error.
-    return <Navigate to={usuario.rol === 'admin' ? '/admin' : '/dashboard'} replace />;
+  // AJUSTA: usa el campo real donde tu usuario guarda el rol
+  // (por ejemplo usuario.rol, usuario.tipo_rol o usuario.id_rol).
+  const rolUsuario = String((usuario as { rol?: string }).rol ?? '');
+
+  if (rolesPermitidos && !rolesPermitidos.includes(rolUsuario)) {
+    return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
-};
-
-export default ProtectedRoute;
+  return children ? <>{children}</> : <Outlet />;
+}

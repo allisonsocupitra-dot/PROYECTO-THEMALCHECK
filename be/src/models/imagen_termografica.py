@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, DECIMAL, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Text, DateTime, DECIMAL, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 
 from src.db.session import Base  # ajusta el import según tu estructura real
@@ -28,6 +28,9 @@ class ImagenTermografica(Base):
     temp_min = Column(DECIMAL(6, 2), nullable=True)
     id_usuario = Column(Integer, nullable=True)
     id_informe = Column(Integer, nullable=True)
+
+    # Notas del visor (tabla clave/valor serializada como JSON por el frontend)
+    observaciones = Column(Text, nullable=True)
 
     puntos_medicion = relationship(
         "PuntoMedicion", back_populates="imagen", cascade="all, delete-orphan"
@@ -60,5 +63,8 @@ class PuntoMedicion(Base):
     pos_min_y = Column(Integer, nullable=True)
     pos_max_x = Column(Integer, nullable=True)
     pos_max_y = Column(Integer, nullable=True)
+
+    # Color con el que el usuario dibujó la figura en el visor (por ejemplo #39d353)
+    color = Column(String(20), nullable=True)
 
     imagen = relationship("ImagenTermografica", back_populates="puntos_medicion")

@@ -8,6 +8,8 @@ Extrae automáticamente los metadatos de una imagen térmica al subirla:
   SOLO si la cámara/app grabó esa información dentro del archivo (EXIF UserComment/XMP en JSON,
   o un stream radiométrico FLIR). Si no existen, se devuelven como None y el frontend los deja
   editables manualmente en el panel de PARÁMETROS — nunca se inventan valores.
+  (Excepción: en R-JPEG de DJI se guardan los valores por defecto con los que se calcula la
+  matriz, para que el panel muestre exactamente lo que se usó.)
  
 Dependencias (agregar a requirements.txt):
     pip install pillow exifread
@@ -205,21 +207,29 @@ def extraer_propiedades_imagen(ruta_archivo: str, nombre_archivo: str) -> dict:
         es_dji = False
  
     if es_dji:
+        # Valores por defecto con los que se calcula la matriz. Deben coincidir con los de
+        # be/api/v1/endpoints/visor/comun.py y con TEMP_REFLEJADA_POR_DEFECTO del frontend.
+        # (OJO: setdefault no sirve aquí porque las claves ya existen con valor None.)
+        defectos = {
+            "distancia_m": 25.0,
+            "humedad": 70.0,
+            "emisividad": 0.98,
+            "temp_reflejada": 23.0,
+        }
+        for clave, defecto in defectos.items():
+            if propiedades.get(clave) is None:
+                propiedades[clave] = defecto
+
         try:
             matriz = medir_temperatura_matriz(
                 ruta_archivo,
-                distancia_m=propiedades.get("distancia_m") or 25.0,
-                humedad_pct=propiedades.get("humedad") or 70.0,
-                emisividad=propiedades.get("emisividad") or 0.98,
-                temp_reflejada_c=propiedades.get("temp_reflejada") or 23.0,
+                distancia_m=propiedades["distancia_m"],
+                humedad_pct=propiedades["humedad"],
+                emisividad=propiedades["emisividad"],
+                temp_reflejada_c=propiedades["temp_reflejada"],
             )
             propiedades["temp_max"] = round(float(matriz.max()), 2)
             propiedades["temp_min"] = round(float(matriz.min()), 2)
-            # valores usados en el cálculo, para dejarlos visibles/editables en el panel
-            propiedades.setdefault("distancia_m", 25.0)
-            propiedades.setdefault("humedad", 70.0)
-            propiedades.setdefault("emisividad", 0.98)
-            propiedades.setdefault("temp_reflejada", 23.0)
         except DjiThermalSdkError as exc:
             # No se pudo medir (archivo dañado, modelo no soportado, etc.):
             # se deja para completar manualmente, sin romper la subida.
@@ -236,6 +246,3 @@ def extraer_propiedades_imagen(ruta_archivo: str, nombre_archivo: str) -> dict:
             )
  
     return propiedades
-
-
- 

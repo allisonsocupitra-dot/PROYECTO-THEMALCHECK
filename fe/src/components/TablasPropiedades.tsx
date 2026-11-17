@@ -1,4 +1,5 @@
 import React from "react";
+import { TEMP_REFLEJADA_POR_DEFECTO } from "../utils/temperaturas";
 
 interface TablaParametrosProps {
   imagen: any;
@@ -11,7 +12,7 @@ export const TablaParametros: React.FC<TablaParametrosProps> = ({
   onCambiarTempReflejada,
   debajoDelCuadro,
 }) => {
-  const tempReflejadaActual = Number(imagen?.parametros?.tempReflejada ?? 20);
+  const tempReflejadaActual = Number(imagen?.parametros?.tempReflejada ?? TEMP_REFLEJADA_POR_DEFECTO);
 
   return (
     <>

@@ -78,7 +78,7 @@ ALTER TABLE usuario
 
 ALTER TABLE informe
     ADD CONSTRAINT fk_informe_usuario
-    FOREIGN KEY (id_usuario);
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario);
     
 INSERT INTO rol (tipo_rol) VALUES
   ('Tecnico'),

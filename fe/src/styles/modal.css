@@ -1,3 +1,101 @@
+/* ===== Modales base (Ajustes y Confirmación) ===== */
+.overlay-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 16px;
+}
+
+.panel-modal {
+  background: #fff;
+  color: #1a202c;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.panel-modal h3,
+.panel-modal h4 {
+  margin: 0 0 8px;
+  color: #1a202c;
+}
+
+.texto-suave {
+  color: #5f6b7a;
+  margin: 0 0 16px;
+}
+
+/* Ajustes */
+.modal-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modal-cerrar {
+  background: transparent;
+  border: none;
+  color: #1a202c;
+  font-size: 18px;
+  cursor: pointer;
+  width: auto;
+  padding: 4px 8px;
+  box-shadow: none;
+}
+
+.selector-idioma {
+  display: flex;
+  gap: 8px;
+}
+
+.boton-idioma {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e0;
+  background: #f7fafc;
+  color: #1a202c;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.boton-idioma-activo {
+  background: #1f3a4d;
+  border-color: #1f3a4d;
+  color: #fff;
+}
+
+/* Confirmación */
+.panel-confirmacion {
+  text-align: center;
+}
+
+.icono-confirmacion {
+  font-size: 44px;
+  color: #1a7a43;
+  margin-bottom: 12px;
+}
+
+.panel-confirmacion button {
+  margin-top: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: #1f3a4d;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===== Modal de salir ===== */
 .modal-salir-overlay {
   position: fixed;
   inset: 0;

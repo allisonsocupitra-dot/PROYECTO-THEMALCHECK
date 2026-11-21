@@ -9,12 +9,6 @@ export interface ErrorAuth {
   mensaje?: string;
 }
 
-// Debe coincidir con la tabla `rol`: 1 = Tecnico, 2 = Administrador.
-const ID_POR_ROL: Record<Rol, number> = {
-  tecnico: 1,
-  admin: 2,
-};
-
 const ROL_POR_NOMBRE: Record<string, Rol> = {
   Administrador: 'admin',
   Tecnico: 'tecnico',
@@ -24,8 +18,10 @@ function normalizarRol(nombreRol: string): Rol {
   return ROL_POR_NOMBRE[nombreRol] ?? 'tecnico';
 }
 
-// POST /api/v1/auth/login — el backend valida correo+contraseña+id_rol y devuelve los datos del usuario (sin token).
-// Si el rol no coincide con el real de la cuenta, responde 403 con { detail: "...id_rol=N" }.
+// POST /api/v1/auth/login — el backend valida correo + contraseña + rol ('tecnico' | 'admin')
+// y devuelve los datos del usuario (sin token).
+// Si el rol no coincide con el real de la cuenta, responde 403 con
+// { detail: "Esta cuenta está registrada como Tecnico|Administrador." }
 export const iniciarSesion = async (correo: string, contraseña: string, rol: Rol): Promise<Usuario> => {
   const respuesta = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
     method: 'POST',
@@ -33,15 +29,19 @@ export const iniciarSesion = async (correo: string, contraseña: string, rol: Ro
     body: JSON.stringify({
       correo_usuario: correo,
       contraseña_usuario: contraseña,
-      id_rol: ID_POR_ROL[rol],
+      rol,
     }),
   });
 
   if (!respuesta.ok) {
     const cuerpo = await respuesta.json().catch(() => null);
     if (respuesta.status === 403) {
-      const idReal = Number(cuerpo?.detail?.match(/id_rol=(\d+)/)?.[1]);
-      const error: ErrorAuth = { codigo: 'rol', rolReal: idReal === 2 ? 'admin' : 'tecnico', mensaje: cuerpo?.detail };
+      const detalle = String(cuerpo?.detail ?? '');
+      const error: ErrorAuth = {
+        codigo: 'rol',
+        rolReal: detalle.includes('Administrador') ? 'admin' : 'tecnico',
+        mensaje: detalle,
+      };
       throw error;
     }
     const error: ErrorAuth = { codigo: 'credenciales', mensaje: cuerpo?.detail };
@@ -75,7 +75,7 @@ export const registrarUsuario = async (
       nombre_usuario: `${nombre} ${apellido}`.trim(),
       correo_usuario: correo,
       contraseña_usuario: contraseña,
-      id_rol: ID_POR_ROL[rol],
+      rol,
     }),
   });
 

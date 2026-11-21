@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Literal, Optional
 
 class UsuarioBase(BaseModel):
     nombre_usuario: str
@@ -7,12 +7,12 @@ class UsuarioBase(BaseModel):
 
 class UsuarioCreate(UsuarioBase):
     contraseña_usuario: str
-    id_rol: Optional[int] = None
+    rol: Literal["tecnico", "admin"]
 
 class UsuarioLogin(BaseModel):
     correo_usuario: EmailStr
     contraseña_usuario: str
-    id_rol: int
+    rol: Literal["tecnico", "admin"]
 
 class UsuarioOut(UsuarioBase):
     id_usuario: int

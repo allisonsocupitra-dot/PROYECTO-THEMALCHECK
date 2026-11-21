@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -19,6 +19,9 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+
+  // useCallback evita que el temporizador del modal se reinicie en cada render
+  const irAlDashboard = useCallback(() => navigate('/dashboard'), [navigate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -121,7 +124,7 @@ const LoginPage: React.FC = () => {
         abierto={mostrarConfirmacion}
         titulo={t('confirmacion.loginTitulo')}
         mensaje={t('confirmacion.loginMensaje')}
-        onContinuar={() => navigate('/dashboard')}
+        onContinuar={irAlDashboard}
       />
 
       <footer className="footer">{t('footer.texto')}</footer>

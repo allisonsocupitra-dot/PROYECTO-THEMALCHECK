@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
 import '../styles/modal.css';
 
@@ -21,7 +22,7 @@ const ModalConfirmacion: React.FC<ModalConfirmacionProps> = ({ abierto, titulo, 
 
   if (!abierto) return null;
 
-  return (
+  return createPortal(
     <div className="overlay-modal" onClick={onContinuar}>
       <div className="panel-modal panel-confirmacion slide-up" onClick={(e) => e.stopPropagation()}>
         <i className="fa-solid fa-circle-check icono-confirmacion"></i>
@@ -31,7 +32,8 @@ const ModalConfirmacion: React.FC<ModalConfirmacionProps> = ({ abierto, titulo, 
           {t('confirmacion.continuar')}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
 import '../styles/modal.css';
 
@@ -12,7 +13,7 @@ const ModalAjustes: React.FC<ModalAjustesProps> = ({ abierto, onCerrar }) => {
 
   if (!abierto) return null;
 
-  return (
+  return createPortal(
     <div className="overlay-modal" onClick={onCerrar}>
       <div className="panel-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-encabezado">
@@ -44,7 +45,8 @@ const ModalAjustes: React.FC<ModalAjustesProps> = ({ abierto, onCerrar }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

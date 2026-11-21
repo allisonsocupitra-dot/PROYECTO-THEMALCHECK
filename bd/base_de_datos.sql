@@ -83,3 +83,4 @@ ALTER TABLE informe
 INSERT INTO rol (tipo_rol) VALUES
   ('Tecnico'),
   ('Administrador');
+  

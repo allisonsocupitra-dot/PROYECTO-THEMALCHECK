@@ -397,6 +397,10 @@
     .lienzo-dibujando{
         cursor: crosshair;
     }
+
+    .lienzo-borrando{
+        cursor: pointer;
+    }
  
     .capa-anotaciones{
         position: absolute;
@@ -744,6 +748,30 @@
         border-radius: 4px;
     }
 
+    .area-notas-visor{
+        width: 100%;
+        box-sizing: border-box;
+        resize: vertical;
+        min-height: 90px;
+        border: 1px solid var(--border-soft);
+        border-radius: 10px;
+        background: var(--surface);
+        padding: 10px 12px;
+        font-size: 12px;
+        font-family: inherit;
+        color: var(--text-main);
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 20px;
+        transition: all .15s ease;
+    }
+
+    .area-notas-visor:focus{
+        background: var(--surface);
+        border-color: var(--accent-orange);
+        box-shadow: 0 0 0 2px var(--focus-ring);
+        outline: none;
+    }
+
     /* ---- Secciones Técnicas y Tablas de Parámetros/Información ---- */
     .contenedor-seccion-tecnica {
         margin: 20px 0;
@@ -892,6 +920,7 @@
         outline: none !important;
         box-shadow: none !important;
         -moz-appearance: textfield;
+        appearance: textfield;
     }
 
     .input-stepper::-webkit-outer-spin-button,

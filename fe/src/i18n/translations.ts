@@ -157,6 +157,7 @@ export const traducciones: Record<string, Entrada> = {
   'visor.herramienta.circulo': { es: 'Círculo', en: 'Circle' },
   'visor.herramienta.color': { es: 'Color de las formas', en: 'Shape color' },
   'visor.herramienta.borrarTodo': { es: 'Borrar todas las marcas', en: 'Clear all marks' },
+  'visor.herramienta.borrarUna': { es: 'Borrar una marca (clic sobre ella)', en: 'Delete one mark (click on it)' },
   'visor.reporteRegistrado': {
     es: 'Se agregó a "Mis reportes". La generación real del archivo llegará con el backend.',
     en: 'Added to "My reports". Actual file generation will come with the backend.',

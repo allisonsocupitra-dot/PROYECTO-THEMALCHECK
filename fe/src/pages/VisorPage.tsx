@@ -22,7 +22,7 @@ import '../styles/visor.css';
 import '../styles/modal.css';
 import { exportarInforme } from '../api/Informes'; // ajusta la ruta según dónde la tengas
 
-type Herramienta = 'ninguna' | 'punto' | 'rectangulo' | 'circulo';
+type Herramienta = 'ninguna' | 'punto' | 'rectangulo' | 'circulo' | 'borrar';
 
 // Resultado de medir una zona (rectángulo). Las posiciones están en % de la
 // imagen renderizada, igual que el resto de las coordenadas de las anotaciones.
@@ -36,7 +36,7 @@ interface ResumenZona {
 
 interface Anotacion {
   id: string;
-  tipo: Exclude<Herramienta, 'ninguna'>;
+  tipo: Exclude<Herramienta, 'ninguna' | 'borrar'>;
   xInicio: number; // porcentaje respecto al ancho de la imagen renderizada
   yInicio: number; // porcentaje respecto al alto de la imagen renderizada
   xFin: number;
@@ -44,12 +44,6 @@ interface Anotacion {
   color: string;
   valorTemp?: number; // solo aplica a puntos; llega del backend al guardar
   resumen?: ResumenZona; // aplica a rectángulos y círculos; llega del backend al guardar
-}
-
-interface FilaEditable {
-  id: string;
-  clave: string;
-  valor: string;
 }
 
 type Dimensiones = { ancho: number; alto: number };
@@ -172,29 +166,31 @@ const puntoGuardadoAAnotacion = (
   };
 };
 
-// Las notas (clave/valor) se guardan como JSON en imagen_termografica.observaciones
-const serializarObservaciones = (filas: FilaEditable[]) =>
-  JSON.stringify(
-    filas
-      .filter((f) => f.clave.trim() || f.valor.trim())
-      .map(({ clave, valor }) => ({ clave, valor }))
-  );
+// Las observaciones ahora son un único texto libre, guardado tal cual en
+// imagen_termografica.observaciones.
+const serializarObservaciones = (texto: string) => texto.trim();
 
-const parsearObservaciones = (texto?: string): FilaEditable[] => {
-  if (!texto) return [];
+// Compatibilidad con observaciones guardadas antes, cuando se guardaban como JSON
+// de filas clave/valor: si el texto es ese JSON, se convierte a líneas "clave: valor".
+const parsearObservaciones = (texto?: string): string => {
+  if (!texto) return '';
   try {
     const datos = JSON.parse(texto);
     if (Array.isArray(datos)) {
-      return datos.map((f, i) => ({
-        id: `nota-${Date.now()}-${i}`,
-        clave: String(f?.clave ?? ''),
-        valor: String(f?.valor ?? ''),
-      }));
+      return datos
+        .map((f) => {
+          const clave = String(f?.clave ?? '').trim();
+          const valor = String(f?.valor ?? '').trim();
+          if (clave && valor) return `${clave}: ${valor}`;
+          return clave || valor;
+        })
+        .filter(Boolean)
+        .join('\n');
     }
   } catch {
-    // texto plano anterior al formato JSON
+    // texto plano (formato actual): se usa tal cual
   }
-  return [{ id: `nota-${Date.now()}-0`, clave: '', valor: texto }];
+  return texto;
 };
 
 // Marcador (círculo + punto + temperatura) para el píxel más frío / más caliente de una zona,
@@ -328,7 +324,7 @@ const VisorPage: React.FC = () => {
   const [colorSeleccionado, setColorSeleccionado] = useState(COLOR_POR_DEFECTO);
   const [anotacionesPorImagen, setAnotacionesPorImagen] = useState<Record<string, Anotacion[]>>({});
   const [dibujando, setDibujando] = useState<Anotacion | null>(null);
-  const [notasPorImagen, setNotasPorImagen] = useState<Record<string, FilaEditable[]>>({});
+  const [notasPorImagen, setNotasPorImagen] = useState<Record<string, string>>({});
   const [, setGuardandoPuntos] = useState(false);
   const [errorGuardadoPuntos, setErrorGuardadoPuntos] = useState<string | null>(null);
   // Imágenes con cambios sin guardar (un guardado que falló o notas editadas)
@@ -394,7 +390,14 @@ const VisorPage: React.FC = () => {
   }, [todasLasImagenes, imagenSeleccionadaId]);
 
   const anotaciones = imagenActiva ? anotacionesPorImagen[imagenActiva.id] ?? [] : [];
-  const notas = imagenActiva ? notasPorImagen[imagenActiva.id] ?? [] : [];
+  const notas = imagenActiva ? notasPorImagen[imagenActiva.id] ?? '' : '';
+
+  // Solo se muestran en las pestañas las imágenes de la MISMA carpeta (o subcarpeta)
+  // que la imagen activa, no todas las imágenes cargadas en el explorador.
+  const imagenesDeLaCarpetaActiva = useMemo(() => {
+    if (!imagenActiva) return todasLasImagenes;
+    return todasLasImagenes.filter((img) => img.carpetaId === imagenActiva.carpetaId);
+  }, [todasLasImagenes, imagenActiva]);
 
   // Iron Red es la paleta que ya trae la foto de DJI, así que usa la imagen original;
   // las demás las genera el backend a partir de las temperaturas reales.
@@ -537,7 +540,7 @@ const VisorPage: React.FC = () => {
   const guardarImagen = async (
     img: ImagenVisor,
     anots: Anotacion[],
-    filas: FilaEditable[],
+    texto: string,
     permitirVacio = false
   ): Promise<boolean> => {
     if (!img.idBackend) return false;
@@ -552,7 +555,7 @@ const VisorPage: React.FC = () => {
     if (puntos.length === 0 && anots.length > 0) return false;
 
     marcarCambios(img.id);
-    const respuesta = await guardarPuntosMedicion(img.idBackend, puntos, serializarObservaciones(filas));
+    const respuesta = await guardarPuntosMedicion(img.idBackend, puntos, serializarObservaciones(texto));
     aplicarPuntosGuardados(img.id, respuesta.puntos, dims);
     actualizarImagen(img.id, { puntos: respuesta.puntos, observaciones: respuesta.observaciones });
     limpiarCambios(img.id);
@@ -573,7 +576,7 @@ const VisorPage: React.FC = () => {
         continue;
       }
       try {
-        const guardada = await guardarImagen(img, anotacionesPorImagen[id] ?? [], notasPorImagen[id] ?? [], true);
+        const guardada = await guardarImagen(img, anotacionesPorImagen[id] ?? [], notasPorImagen[id] ?? '', true);
         if (!guardada) ok = false;
       } catch {
         ok = false;
@@ -595,7 +598,7 @@ const VisorPage: React.FC = () => {
   // Al entrar: reconstruye anotaciones y notas desde lo que hay en la BD (vía el contexto)
   useEffect(() => {
     const nuevasAnotaciones: Record<string, Anotacion[]> = {};
-    const nuevasNotas: Record<string, FilaEditable[]> = {};
+    const nuevasNotas: Record<string, string> = {};
 
     todasLasImagenes.forEach((img) => {
       if (!img.idBackend || hidratadasRef.current.has(img.id)) return;
@@ -717,7 +720,7 @@ const VisorPage: React.FC = () => {
         const pdfBlob = await exportarInforme({
           nombre_archivo: imagenActiva.archivo.name.replace(/\.[^/.]+$/, ''),
           nivel_riesgo: 'TODO', // TODO: conectar con el campo real cuando exista en el visor
-          observaciones: notas.map((n) => `${n.clave}: ${n.valor}`).join('; ') || undefined,
+          observaciones: notas || undefined,
           estado: 'TODO', // TODO: conectar con el campo real
           id_usuario: usuario?.id ? Number(usuario.id) : 0, // ajusta el campo según cómo guardes el id en AuthContext
         });
@@ -828,6 +831,23 @@ const VisorPage: React.FC = () => {
     );
   };
 
+  // Elimina UNA sola marca (la que se tocó) y guarda el resultado en el backend.
+  // Es lo que usa la herramienta "borrar" al hacer clic sobre una figura.
+  const eliminarAnotacion = (id: string) => {
+    if (!imagenActiva) return;
+    const actuales = anotacionesPorImagen[imagenActiva.id] ?? [];
+    const filtradas = actuales.filter((a) => a.id !== id);
+    setAnotacionesPorImagen((prev) => ({ ...prev, [imagenActiva.id]: filtradas }));
+    sincronizarMediciones(filtradas);
+  };
+
+  // Clic sobre una figura ya dibujada: solo borra cuando la herramienta activa es "borrar"
+  const manejarClickAnotacion = (e: React.MouseEvent, id: string) => {
+    if (herramienta !== 'borrar') return;
+    e.stopPropagation();
+    eliminarAnotacion(id);
+  };
+
   // Se llama una sola vez cuando se suelta el clic y el trazo queda terminado.
   // Los rectángulos y los círculos se mandan al backend para medir su temperatura.
   const finalizarTrazo = (trazo: Anotacion) => {
@@ -839,7 +859,9 @@ const VisorPage: React.FC = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (herramienta === 'ninguna' || !imagenActiva) return;
+    // En modo "borrar" no se dibuja nada al hacer clic en el lienzo; solo se
+    // elimina una marca al hacer clic directamente sobre ella (ver manejarClickAnotacion).
+    if (herramienta === 'ninguna' || herramienta === 'borrar' || !imagenActiva) return;
     const { x, y } = obtenerPosicionRelativa(e.clientX, e.clientY);
     contadorRef.current += 1;
 
@@ -974,7 +996,11 @@ const VisorPage: React.FC = () => {
     if (a.tipo === 'punto') {
       const numero = numerosPunto.get(a.id);
       return (
-        <g key={a.id}>
+        <g
+          key={a.id}
+          onClick={(e) => manejarClickAnotacion(e, a.id)}
+          style={{ pointerEvents: herramienta === 'borrar' ? 'all' : 'none', cursor: herramienta === 'borrar' ? 'pointer' : undefined }}
+        >
           <circle cx={a.xInicio} cy={a.yInicio} r="1.6" fill="none" stroke={a.color} strokeWidth="0.35" />
           <line x1={a.xInicio - 2.6} y1={a.yInicio} x2={a.xInicio - 1.1} y2={a.yInicio} stroke={a.color} strokeWidth="0.35" />
           <line x1={a.xInicio + 1.1} y1={a.yInicio} x2={a.xInicio + 2.6} y2={a.yInicio} stroke={a.color} strokeWidth="0.35" />
@@ -1005,7 +1031,11 @@ const VisorPage: React.FC = () => {
 
     if (a.tipo === 'rectangulo') {
       return (
-        <g key={a.id}>
+        <g
+          key={a.id}
+          onClick={(e) => manejarClickAnotacion(e, a.id)}
+          style={{ pointerEvents: herramienta === 'borrar' ? 'all' : 'none', cursor: herramienta === 'borrar' ? 'pointer' : undefined }}
+        >
           <rect
             x={x1}
             y={y1}
@@ -1031,7 +1061,11 @@ const VisorPage: React.FC = () => {
 
     // círculo
     return (
-      <g key={a.id}>
+      <g
+        key={a.id}
+        onClick={(e) => manejarClickAnotacion(e, a.id)}
+        style={{ pointerEvents: herramienta === 'borrar' ? 'all' : 'none', cursor: herramienta === 'borrar' ? 'pointer' : undefined }}
+      >
         <ellipse
           cx={x1 + ancho / 2}
           cy={y1 + alto / 2}
@@ -1069,30 +1103,11 @@ const VisorPage: React.FC = () => {
     setMenuExportarAbierto(false);
   };
 
-  // Tabla editable de observaciones (Remarks), independiente por imagen.
+  // Observaciones: un único campo de texto libre, independiente por imagen.
   // Cada edición marca la imagen como "con cambios" hasta que se guarde.
-  const agregarFilaNota = () => {
+  const actualizarNotas = (texto: string) => {
     if (!imagenActiva) return;
-    const nueva: FilaEditable = { id: `nota-${Date.now()}`, clave: '', valor: '' };
-    setNotasPorImagen((prev) => ({ ...prev, [imagenActiva.id]: [...(prev[imagenActiva.id] ?? []), nueva] }));
-    if (imagenActiva.idBackend) marcarCambios(imagenActiva.id);
-  };
-
-  const actualizarFilaNota = (id: string, campo: 'clave' | 'valor', texto: string) => {
-    if (!imagenActiva) return;
-    setNotasPorImagen((prev) => ({
-      ...prev,
-      [imagenActiva.id]: (prev[imagenActiva.id] ?? []).map((f) => (f.id === id ? { ...f, [campo]: texto } : f)),
-    }));
-    if (imagenActiva.idBackend) marcarCambios(imagenActiva.id);
-  };
-
-  const eliminarFilaNota = (id: string) => {
-    if (!imagenActiva) return;
-    setNotasPorImagen((prev) => ({
-      ...prev,
-      [imagenActiva.id]: (prev[imagenActiva.id] ?? []).filter((f) => f.id !== id),
-    }));
+    setNotasPorImagen((prev) => ({ ...prev, [imagenActiva.id]: texto }));
     if (imagenActiva.idBackend) marcarCambios(imagenActiva.id);
   };
 
@@ -1116,7 +1131,7 @@ const VisorPage: React.FC = () => {
             <div className="visor-layout">
               <div className="visor-principal">
                 <div className="pestanas-imagenes">
-                  {todasLasImagenes.map((img) => (
+                  {imagenesDeLaCarpetaActiva.map((img) => (
                     <button
                       key={img.id}
                       type="button"
@@ -1292,11 +1307,11 @@ const VisorPage: React.FC = () => {
 
                           <button
                             type="button"
-                            className="boton-herramienta boton-herramienta-borrar"
-                            title={t('visor.herramienta.borrarTodo')}
-                            onClick={borrarAnotaciones}
+                            className={esHerramientaActiva('borrar')}
+                            title={t('visor.herramienta.borrarUna')}
+                            onClick={() => setHerramienta('borrar')}
                           >
-                            <i className="fa-solid fa-broom"></i>
+                            <i className="fa-solid fa-eraser"></i>
                           </button>
                         </aside>
                       )}
@@ -1304,7 +1319,13 @@ const VisorPage: React.FC = () => {
                       <div className="contenedor-imagen-visor">
                         <div
                           ref={contenedorImagenRef}
-                          className={`lienzo-imagen-visor ${herramienta !== 'ninguna' ? 'lienzo-dibujando' : ''}`}
+                          className={`lienzo-imagen-visor ${
+                            herramienta === 'borrar'
+                              ? 'lienzo-borrando'
+                              : herramienta !== 'ninguna'
+                              ? 'lienzo-dibujando'
+                              : ''
+                          }`}
                           onMouseDown={handleMouseDown}
                         >
                           <img
@@ -1410,59 +1431,18 @@ const VisorPage: React.FC = () => {
                   />
                   <TablaInfoImagen imagen={imagenParaPanel} />
 
-                  {/* Remarks: tabla editable clave/valor, independiente por imagen */}
+                  {/* Remarks: un único campo de texto libre, independiente por imagen */}
                   <div className="tabla-editable-header">
                     <h5 className="visor-panel-subtitulo">{t('visor.notas.titulo')}</h5>
-                    <button type="button" className="boton-agregar-fila" onClick={agregarFilaNota} title={t('visor.notas.agregar')}>
-                      <i className="fa-solid fa-plus"></i>
-                    </button>
                   </div>
 
-                  <table className="tabla-editable">
-                    <thead>
-                      <tr>
-                        <th>{t('visor.notas.clave')}</th>
-                        <th>{t('visor.notas.valor')}</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {notas.map((fila) => (
-                        <tr key={fila.id}>
-                          <td>
-                            <input
-                              type="text"
-                              value={fila.clave}
-                              onChange={(e) => actualizarFilaNota(fila.id, 'clave', e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              value={fila.valor}
-                              onChange={(e) => actualizarFilaNota(fila.id, 'valor', e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="boton-quitar-fila"
-                              onClick={() => eliminarFilaNota(fila.id)}
-                            >
-                              <i className="fa-solid fa-xmark"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {notas.length === 0 && (
-                        <tr>
-                          <td colSpan={3} className="texto-suave">
-                            {t('visor.notas.vacio')}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                  <textarea
+                    className="area-notas-visor"
+                    value={notas}
+                    onChange={(e) => actualizarNotas(e.target.value)}
+                    placeholder={t('visor.notas.vacio')}
+                    rows={4}
+                  />
                 </aside>
               )}
             </div>

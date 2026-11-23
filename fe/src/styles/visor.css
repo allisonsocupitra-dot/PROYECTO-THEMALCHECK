@@ -1,976 +1,1106 @@
-.visor-layout{
-        display: flex;
-        flex: 1;
-        min-height: 0;
-        animation: fade-in .45s ease both;
-    }
- 
-    .visor-principal{
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        padding: 15px 20px;
-    }
- 
-    .pestanas-imagenes{
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        margin-bottom: 16px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--border-soft);
-        scrollbar-width: thin;
-    }
- 
-    .pestana{
-        flex-shrink: 0;
-        padding: 8px 14px;
-        border-radius: 8px 8px 0 0;
-        border: 1px solid transparent;
-        border-bottom: none;
-        background-color: rgba(255, 240, 232, 0.6);
-        color: var(--text-muted);
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        max-width: 170px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        transition: all .2s var(--ease-spring);
-    }
- 
-    .pestana:hover{
-        background-color: var(--primary-soft);
-        color: var(--text-main);
-        transform: translateY(-1px);
-    }
- 
-    .pestana-activa{
-        background-color: var(--primary-color) !important;
-        color: #fff !important;
-        box-shadow: 0 4px 14px rgba(23, 34, 45, .15);
-    }
- 
-    /* ---- Área de edición: barra superior + herramientas + imagen ---- */
- 
-    .area-edicion-visor{
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        min-height: 0;
-        gap: 12px;
-    }
- 
-    .area-imagen-y-herramientas{
-        display: flex;
-        flex: 1;
-        min-height: 0;
-        gap: 14px;
-    }
- 
-    /* ---- Barra superior: nombre/fecha + borrar mediciones + editar + exportar ---- */
- 
-    .barra-superior-visor{
-        position: relative;   /* FIX menú Exportar */
-        z-index: 30;          /* FIX menú Exportar */
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        padding: 10px 16px;
-        background: rgba(255, 255, 255, .88);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--border-soft);
-        border-radius: 14px;
-        box-shadow: var(--shadow-soft);
-    }
- 
-    .barra-superior-info{
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-    }
- 
-    .barra-superior-nombre{
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--text-main);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 320px;
-    }
- 
-    .barra-superior-acciones{
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
- 
-    .boton-superior-visor{
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        padding: 9px 14px;
-        border: 1px solid var(--border-soft);
-        border-radius: 9px;
-        background: var(--surface);
-        color: var(--text-main);
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        white-space: nowrap;
-        box-shadow: var(--shadow-soft);
-        transition: all .2s var(--ease-spring);
-    }
- 
-    .boton-superior-visor:hover{
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-        background: var(--primary-soft);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-hover);
-    }
- 
-    .boton-superior-activo{
-        background: var(--accent-orange) !important;
-        border-color: var(--accent-orange) !important;
-        color: #fff !important;
-        box-shadow: 0 6px 18px rgba(238, 113, 53, .35) !important;
-        transform: translateY(-1px);
-    }
- 
-    .boton-superior-activo:hover{
-        background: var(--accent-orange-hover) !important;
-        color: #fff !important;
-    }
- 
-    .menu-exportar-visor{
-        position: relative;
-    }
- 
-    .menu-exportar-flecha{
-        font-size: 9px;
-        margin-left: 2px;
-        transition: transform .25s var(--ease-spring);
-    }
+.visor-layout {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    animation: fade-in .45s ease both;
+}
 
-    .menu-exportar-flecha.rotado{
-        transform: rotate(180deg);
-    }
- 
-    .menu-exportar-opciones{
-        position: absolute;
-        top: calc(100% + 8px);
-        right: 0;
-        z-index: 20;
-        display: flex;
-        flex-direction: column;
-        min-width: 210px;
-        padding: 6px;
-        background: rgba(255, 255, 255, .96);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid var(--border-soft);
-        border-radius: 12px;
-        box-shadow: var(--shadow-floating);
-        animation: dropdown-pop .2s var(--ease-spring) both;
-    }
- 
-    .menu-exportar-opciones button{
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        padding: 10px 12px;
-        border: 0;
-        border-radius: 8px;
-        background: transparent;
-        color: var(--text-main);
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        text-align: left;
-        transition: all .15s ease;
-    }
- 
-    .menu-exportar-opciones button:hover{
-        background: var(--primary-soft);
-        color: var(--accent-orange);
-        transform: translateX(3px);
-    }
- 
-    .aviso-pendiente-superior{
-        margin: 0;
-        animation: toast-slide-down .35s var(--ease-spring) both;
-        background: rgba(255, 243, 214, .95) !important;
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(154, 107, 0, .25);
-        box-shadow: var(--shadow-soft);
-        border-radius: 10px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
- 
-    .barra-herramientas-visor{
-        position: relative;   /* para que el popup de paletas quede por encima de la imagen */
-        z-index: 25;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        flex-shrink: 0;
-        padding: 10px 8px;
-        background: rgba(255, 255, 255, .94);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid var(--border-soft);
-        border-radius: 14px;
-        box-shadow: var(--shadow-soft);
-        height: fit-content;
-        animation: fade-in .3s var(--ease-spring) both;
-    }
- 
-    .boton-herramienta{
-        position: relative;
-        width: 38px;
-        height: 38px;
-        display: grid;
-        place-items: center;
-        border: 1px solid transparent;
-        border-radius: 9px;
-        background: transparent;
-        color: var(--text-muted);
-        cursor: pointer;
-        font-size: 14px;
-        transition: all .2s var(--ease-spring);
-    }
- 
-    .boton-herramienta:hover{
-        background: var(--primary-soft);
-        color: var(--primary-color);
-        transform: scale(1.06);
-    }
- 
-    .boton-herramienta-activa{
-        background: var(--primary-color) !important;
-        color: #fff !important;
-        box-shadow: 0 4px 12px rgba(23, 34, 45, .25);
-    }
- 
-    .boton-herramienta-activa:hover{
-        background: var(--primary-color) !important;
-        color: #fff !important;
-    }
- 
-    .boton-color{
-        margin-top: 6px;
-        border-top: 1px solid var(--border-soft);
-        padding-top: 14px;
-        border-radius: 9px 9px 0 0;
-    }
- 
-    .muestra-color{
-        position: absolute;
-        bottom: 4px;
-        right: 4px;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        border: 1.5px solid #fff;
-        box-shadow: 0 0 0 1px rgba(0,0,0,.25);
-        transition: transform .2s ease;
-    }
+.visor-principal {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 15px 20px;
+}
 
-    .boton-color:hover .muestra-color {
-        transform: scale(1.2);
-    }
- 
-    .input-color-oculto{
-        position: absolute;
-        width: 0;
-        height: 0;
-        opacity: 0;
-        pointer-events: none;
-    }
- 
-    .boton-herramienta-borrar{
-        margin-top: 6px;
-        border-top: 1px solid var(--border-soft);
-        padding-top: 14px;
-        border-radius: 9px 9px 0 0;
-        color: #b3261e;
-    }
- 
-    .boton-herramienta-borrar:hover{
-        background: #fde2e2;
-        color: #b3261e;
-        transform: scale(1.06);
-    }
+.pestanas-imagenes {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-soft);
+    scrollbar-width: thin;
+}
 
-    /* ---- Selector de paleta térmica (popup junto a la barra de herramientas) ---- */
+.pestana {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background-color: rgba(255, 240, 232, 0.6);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: all .2s var(--ease-spring);
+}
 
-    .paleta-visor{
-        position: relative;
-    }
+.pestana:hover {
+    background-color: var(--primary-soft);
+    color: var(--text-main);
+    transform: translateY(-1px);
+}
 
-    .menu-paleta{
-        position: absolute;
-        left: calc(100% + 18px);
-        top: 0;
-        z-index: 40;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        width: 190px;
-        max-height: 70vh;
-        overflow-y: auto;
-        padding: 8px;
-        background: rgba(255, 255, 255, .97);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid var(--border-soft);
-        border-radius: 12px;
-        box-shadow: var(--shadow-floating);
-        animation: dropdown-pop .2s var(--ease-spring) both;
-    }
+.pestana-activa {
+    background-color: var(--primary-color) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(23, 34, 45, .15);
+}
 
-    .menu-paleta-titulo{
-        padding: 8px 10px;
-        margin-bottom: 4px;
-        font-size: 12px;
-        font-weight: 800;
-        color: var(--text-main);
-        background: var(--surface-muted);
-        border-radius: 8px;
-    }
+/* ---- Área de edición: barra superior + herramientas + imagen ---- */
 
-    .menu-paleta-opcion{
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        padding: 7px 10px;
-        border: 0;
-        border-radius: 8px;
-        background: transparent;
-        color: var(--text-main);
-        font-size: 12px;
-        font-weight: 600;
-        text-align: left;
-        cursor: pointer;
-        transition: all .15s ease;
-    }
+.area-edicion-visor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 12px;
+}
 
-    .menu-paleta-opcion:hover{
-        background: var(--primary-soft);
-        color: var(--accent-orange);
-    }
+.area-imagen-y-herramientas {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 14px;
+}
 
-    .menu-paleta-opcion-activa{
-        background: var(--primary-soft);
-        color: var(--accent-orange);
-        box-shadow: inset 0 0 0 1px rgba(238, 113, 53, .35);
-    }
+/* ---- Barra superior: nombre/fecha + borrar mediciones + editar + exportar ---- */
 
-    .menu-paleta-muestra{
-        flex-shrink: 0;
-        width: 18px;
-        height: 18px;
-        border: 1px solid rgba(0, 0, 0, .15);
-        border-radius: 4px;
-    }
- 
-    .lienzo-imagen-visor{
-        position: relative;
-        display: inline-block;
-        line-height: 0;
-        transition: transform .2s ease;
-    }
- 
-    .lienzo-dibujando{
-        cursor: crosshair;
-    }
+.barra-superior-visor {
+    position: relative;   /* FIX menú Exportar */
+    z-index: 30;          /* FIX menú Exportar */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, .88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    box-shadow: var(--shadow-soft);
+}
 
-    .lienzo-borrando{
-        cursor: pointer;
-    }
- 
-    .capa-anotaciones{
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-    }
- 
-    .forma-anotacion{
-        fill-opacity: .15;
-        stroke-width: 0.5;
-    }
- 
-    .contenedor-imagen-visor{
-        position: relative;
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #0e1115;
-        border: 1px solid rgba(255, 255, 255, .08);
-        border-radius: 14px;
-        padding: 20px;
-        min-height: 320px;
-        box-shadow: inset 0 2px 14px rgba(0,0,0,.5);
-    }
- 
-    .lienzo-imagen-visor img{
-        display: block;
-        max-width: 100%;
-        max-height: 65vh;
-        object-fit: contain;
-        border-radius: 6px;
-        box-shadow: 0 8px 30px rgba(0,0,0,.6);
-    }
- 
-    .barra-temperatura{
-        position: absolute;
-        right: 20px;
-        top: 20px;
-        bottom: 20px;
-        width: 64px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        color: white;
-        font-size: 12px;
-        font-weight: 700;
-        background: rgba(18, 22, 28, .75);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, .1);
-        border-radius: 12px;
-        padding: 12px 6px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
-    }
- 
-    .gradiente-temperatura{
-        flex: 1;
-        width: 14px;
-        margin: 8px 0;
-        border-radius: 7px;
-        border: 1px solid rgba(255, 255, 255, .15);
-        /* Degradado por defecto (Iron Red); VisorPage lo reemplaza según la paleta elegida */
-        background: linear-gradient(
-            to top,
-            #000000 0%,
-            #3a0d5c 20%,
-            #8b1a6b 40%,
-            #d43d51 60%,
-            #f58b2c 80%,
-            #fdf3a0 100%
-        );
-    }
- 
-    .temp-max{
-        color: #ff9d82;
-        text-shadow: 0 1px 4px rgba(0,0,0,.8);
-    }
- 
-    .temp-min{
-        color: #9cbaff;
-        text-shadow: 0 1px 4px rgba(0,0,0,.8);
-    }
- 
-    .visor-panel{
-        width: 380px;
-        min-width: 340px;
-        max-width: 430px;
-        flex-shrink: 0;
-        background-color: var(--surface);
-        border-left: 1px solid var(--border-soft);
-        padding: 22px;
-        overflow-y: auto;
-        text-align: left;
-        box-sizing: border-box;
-    }
- 
-    .visor-panel h4{
-        font-size: 14px;
-        color: #333;
-        margin-bottom: 4px;
-        word-break: break-word;
-    }
- 
-    .info-imagen{
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin: 18px 0;
-        padding: 12px;
-        background: linear-gradient(135deg, rgba(255, 240, 232, 0.7) 0%, rgba(251, 250, 244, 0.95) 100%);
-        border: 1px solid rgba(238, 113, 53, 0.2);
-        border-radius: 12px;
-        box-shadow: var(--shadow-soft);
-        text-align: center;
-        transition: transform .2s var(--ease-spring), box-shadow .2s ease;
-    }
+.barra-superior-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
 
-    .info-imagen:hover{
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-hover);
-    }
- 
-    .info-imagen div{
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
- 
-    .info-imagen strong{
-        font-size: 14px;
-        font-weight: 800;
-        color: var(--text-main);
-    }
- 
-    .grupo-exportar{
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
- 
-    .boton-exportar-visor{
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid var(--border-soft);
-        background-color: var(--surface);
-        color: #333;
-        font-size: 12px;
-        font-weight: normal;
-        cursor: pointer;
-        text-align: left;
-    }
- 
-    .boton-exportar-visor:hover{
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-        background-color: var(--surface);
-    }
- 
-    .aviso-pendiente{
-        margin-top: 8px;
-        font-size: 11px;
-        color: #9a6b00;
-        background-color: #fff3d6;
-        padding: 8px;
-        border-radius: 6px;
-    }
- 
-    /* ---- Panel del visor: propiedades y anotaciones editables ---- */
- 
-    .visor-panel-subtitulo{
-        font-size: 11px;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: .5px;
-        font-weight: 700;
-    }
- 
-    /* ---- Puntos de medición: lista debajo del cuadro Máx/Mín/ΔTemp ---- */
- 
-    .puntos-medicion{
-        margin: 18px 0;
-    }
- 
-    .lista-puntos-medicion{
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-top: 8px;
-    }
- 
-    .punto-medicion-item{
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        background-color: var(--surface-muted);
-        border: 1px solid var(--border-soft);
-        border-radius: 9px;
-        font-size: 12px;
-        transition: all .2s var(--ease-spring);
-    }
- 
-    .punto-medicion-item:hover{
-        background-color: var(--primary-soft);
-        border-color: rgba(238, 113, 53, .3);
-        transform: translateX(3px);
-    }
- 
-    .punto-medicion-color{
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        box-shadow: 0 0 0 2px #fff, 0 1px 3px rgba(0,0,0,.2);
-    }
- 
-    .punto-medicion-etiqueta{
-        font-weight: 700;
-        color: var(--text-main);
-    }
- 
-    .punto-medicion-valor{
-        margin-left: auto;
-        font-weight: 700;
-        color: var(--primary-color);
-    }
- 
-    .tabla-propiedades{
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 12px;
-        margin: 12px 0 20px;
-    }
- 
-    .tabla-propiedades tr{
-        border-bottom: 1px solid var(--border-soft);
-    }
- 
-    .tabla-propiedades th{
-        text-align: left;
-        padding: 7px 0;
-        color: var(--text-muted);
-        font-weight: 600;
-        width: 55%;
-    }
- 
-    .tabla-propiedades td{
-        padding: 7px 0;
-        color: var(--text-main);
-        text-align: right;
-    }
- 
-    .tabla-editable-header{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin: 18px 0 8px;
-    }
- 
-    .boton-agregar-fila{
-        width: 24px;
-        height: 24px;
-        display: grid;
-        place-items: center;
-        border: none;
-        border-radius: 6px;
-        background: var(--primary-soft);
-        color: var(--primary-color);
-        cursor: pointer;
-        font-size: 11px;
-    }
- 
-    .boton-agregar-fila:hover{
-        background: var(--primary-color);
-        color: #fff;
-    }
- 
-    .tabla-editable{
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        background: var(--surface);
-        border: 1px solid var(--border-soft);
-        border-radius: 10px;
-        overflow: hidden;
-        font-size: 12px;
-        margin-bottom: 20px;
-        box-shadow: var(--shadow-soft);
-    }
- 
-    .tabla-editable th{
-        text-align: left;
-        padding: 8px 10px;
-        color: var(--text-muted);
-        font-weight: 700;
-        background-color: rgba(251, 250, 244, 0.7);
-        border-bottom: 1px solid var(--border-soft);
-    }
- 
-    .tabla-editable td{
-        padding: 4px 6px;
-        border-bottom: 1px solid rgba(23, 34, 45, 0.06);
-    }
- 
-    .tabla-editable input{
-        width: 100%;
-        border: 1px solid transparent;
-        background: transparent;
-        padding: 6px 8px;
-        font-size: 12px;
-        color: var(--text-main);
-        border-radius: 6px;
-        box-sizing: border-box;
-        transition: all .15s ease;
-    }
- 
-    .tabla-editable input:focus{
-        background: var(--surface);
-        border-color: var(--accent-orange) !important;
-        box-shadow: 0 0 0 2px var(--focus-ring) !important;
-        outline: none;
-    }
- 
-    .boton-quitar-fila{
-        width: 20px;
-        height: 20px;
-        display: grid;
-        place-items: center;
-        border: none;
-        background: transparent;
-        color: #b3261e;
-        cursor: pointer;
-        font-size: 11px;
-    }
- 
-    .boton-quitar-fila:hover{
-        background: #fde2e2;
-        border-radius: 4px;
-    }
+.barra-superior-nombre {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 320px;
+}
 
-    .area-notas-visor{
-        width: 100%;
-        box-sizing: border-box;
-        resize: vertical;
-        min-height: 90px;
-        border: 1px solid var(--border-soft);
-        border-radius: 10px;
-        background: var(--surface);
-        padding: 10px 12px;
-        font-size: 12px;
-        font-family: inherit;
-        color: var(--text-main);
-        box-shadow: var(--shadow-soft);
-        margin-bottom: 20px;
-        transition: all .15s ease;
-    }
+.barra-superior-acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
 
-    .area-notas-visor:focus{
-        background: var(--surface);
-        border-color: var(--accent-orange);
-        box-shadow: 0 0 0 2px var(--focus-ring);
-        outline: none;
-    }
+.boton-superior-visor {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border: 1px solid var(--border-soft);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text-main);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: var(--shadow-soft);
+    transition: all .2s var(--ease-spring);
+}
 
-    /* ---- Secciones Técnicas y Tablas de Parámetros/Información ---- */
-    .contenedor-seccion-tecnica {
-        margin: 20px 0;
-        text-align: left;
-    }
+.boton-superior-visor:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: var(--primary-soft);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+}
 
-    .encabezado-seccion-tecnica {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 10px;
-        font-size: 11px;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: .6px;
-    }
+.boton-superior-activo {
+    background: var(--accent-orange) !important;
+    border-color: var(--accent-orange) !important;
+    color: #fff !important;
+    box-shadow: 0 6px 18px rgba(238, 113, 53, .35) !important;
+    transform: translateY(-1px);
+}
 
-    .encabezado-seccion-tecnica i {
-        color: var(--accent-orange);
-        font-size: 12px;
-    }
+.boton-superior-activo:hover {
+    background: var(--accent-orange-hover) !important;
+    color: #fff !important;
+}
 
-    .tabla-datos-tecnicos {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        background: var(--surface);
-        border: 1px solid var(--border-soft);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: var(--shadow-soft);
-        font-size: 12px;
-        margin-bottom: 6px;
-    }
+.menu-exportar-visor {
+    position: relative;
+}
 
-    .tabla-datos-tecnicos tr {
-        transition: background-color .15s ease;
-    }
+.menu-exportar-flecha {
+    font-size: 9px;
+    margin-left: 2px;
+    transition: transform .25s var(--ease-spring);
+}
 
-    .tabla-datos-tecnicos tr:not(:last-child) th,
-    .tabla-datos-tecnicos tr:not(:last-child) td {
-        border-bottom: 1px solid rgba(23, 34, 45, 0.07);
-    }
+.menu-exportar-flecha.rotado {
+    transform: rotate(180deg);
+}
 
-    .tabla-datos-tecnicos tr:hover {
-        background-color: var(--surface-muted);
-    }
+.menu-exportar-opciones {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-width: 210px;
+    padding: 6px;
+    background: rgba(255, 255, 255, .96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    box-shadow: var(--shadow-floating);
+    animation: dropdown-pop .2s var(--ease-spring) both;
+}
 
-    .tabla-datos-tecnicos th {
-        width: 44%;
-        padding: 9px 12px;
-        text-align: left;
-        color: var(--text-muted);
-        font-weight: 600;
-        background-color: rgba(251, 250, 244, 0.7);
-        vertical-align: middle;
-        white-space: nowrap;
-    }
+.menu-exportar-opciones button {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-main);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s ease;
+}
 
-    .tabla-datos-tecnicos td {
-        width: 56%;
-        padding: 9px 12px;
-        text-align: right;
-        color: var(--text-main);
-        font-weight: 600;
-        vertical-align: middle;
-        word-break: break-word;
-    }
+.menu-exportar-opciones button:hover {
+    background: var(--primary-soft);
+    color: var(--accent-orange);
+    transform: translateX(3px);
+}
 
-    .valor-mono {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 11.5px;
-        letter-spacing: -0.2px;
-    }
+.aviso-pendiente-superior {
+    margin: 0;
+    animation: toast-slide-down .35s var(--ease-spring) both;
+    background: rgba(255, 243, 214, .95) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(154, 107, 0, .25);
+    box-shadow: var(--shadow-soft);
+    border-radius: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-    .valor-destacado {
-        color: var(--primary-color);
-        font-weight: 800;
-    }
+.barra-herramientas-visor {
+    position: relative;   /* para que el popup de paletas quede por encima de la imagen */
+    z-index: 25;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 10px 8px;
+    background: rgba(255, 255, 255, .94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    box-shadow: var(--shadow-soft);
+    height: fit-content;
+    animation: fade-in .3s var(--ease-spring) both;
+}
 
-    .valor-coordenadas {
-        color: var(--accent-orange);
-        font-weight: 700;
-        font-size: 11px;
-    }
+.boton-herramienta {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all .2s var(--ease-spring);
+}
 
-    .valor-fecha {
-        font-size: 11px;
-        color: var(--text-muted);
-    }
+.boton-herramienta:hover {
+    background: var(--primary-soft);
+    color: var(--primary-color);
+    transform: scale(1.06);
+}
 
-    /* Stepper horizontal compacto para temperatura reflejada */
-    .stepper-temp-reflejada {
-        display: inline-flex;
-        align-items: center;
-        gap: 0;
-        border: 1px solid var(--border-soft);
-        border-radius: 8px;
-        background: var(--surface);
-        overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0,0,0,.05);
-        transition: border-color .2s ease;
-    }
+.boton-herramienta-activa {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(23, 34, 45, .25);
+}
 
-    .stepper-temp-reflejada:focus-within {
-        border-color: var(--accent-orange);
-        box-shadow: 0 0 0 3px var(--focus-ring);
-    }
+.boton-herramienta-activa:hover {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+}
 
-    .btn-stepper {
-        width: 26px !important;
-        height: 26px !important;
-        min-width: 26px !important;
-        padding: 0 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        border: none !important;
-        background: transparent !important;
-        color: var(--text-main) !important;
-        font-size: 14px !important;
-        font-weight: 800 !important;
-        cursor: pointer !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        transition: background-color .15s ease, color .15s ease !important;
-    }
+.boton-color {
+    margin-top: 6px;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 14px;
+    border-radius: 9px 9px 0 0;
+}
 
-    .btn-stepper:hover {
-        background-color: var(--primary-soft) !important;
-        color: var(--accent-orange) !important;
-        transform: none !important;
-    }
+.muestra-color {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .25);
+    transition: transform .2s ease;
+}
 
-    .input-stepper {
-        width: 36px !important;
-        height: 26px !important;
-        border: none !important;
-        background: transparent !important;
-        text-align: center !important;
-        font-size: 12px !important;
-        font-weight: 800 !important;
-        color: var(--text-main) !important;
-        padding: 0 !important;
-        outline: none !important;
-        box-shadow: none !important;
-        -moz-appearance: textfield;
-        appearance: textfield;
-    }
+.boton-color:hover .muestra-color {
+    transform: scale(1.2);
+}
 
-    .input-stepper::-webkit-outer-spin-button,
-    .input-stepper::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
+.input-color-oculto {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
 
-    .unidad-stepper {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--text-muted);
-        padding-right: 6px;
-        user-select: none;
-    }
+.boton-herramienta-borrar {
+    margin-top: 6px;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 14px;
+    border-radius: 9px 9px 0 0;
+    color: #b3261e;
+}
 
-    /* Tarjeta de un rectángulo medido: Máx. / Mín. / Avg., con el mismo aire
-       que el cuadro Máx/Mín/ΔTemp de la imagen. */
+.boton-herramienta-borrar:hover {
+    background: #fde2e2;
+    color: #b3261e;
+    transform: scale(1.06);
+}
 
-    .zona-medicion {
-      padding: 12px 14px;
-      border: 1px solid #f1dccb;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #fff4ea 0%, #fdf8f1 100%);
-    }
+/* ---- Selector de paleta térmica (popup junto a la barra de herramientas) ---- */
 
-    .zona-medicion-titulo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
+.paleta-visor {
+    position: relative;
+}
 
-    .zona-medicion-valores {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      text-align: center;
-    }
+.menu-paleta {
+    position: absolute;
+    left: calc(100% + 18px);
+    top: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 190px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 8px;
+    background: rgba(255, 255, 255, .97);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    box-shadow: var(--shadow-floating);
+    animation: dropdown-pop .2s var(--ease-spring) both;
+}
 
-    .zona-medicion-dato span {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 12px;
-      color: #7a7a7a;
-    }
+.menu-paleta-titulo {
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-main);
+    background: var(--surface-muted);
+    border-radius: 8px;
+}
 
-    .zona-medicion-dato strong {
-      font-size: 16px;
-      font-weight: 700;
-      color: #1c1c1c;
-    }
+.menu-paleta-opcion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-main);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+
+.menu-paleta-opcion:hover {
+    background: var(--primary-soft);
+    color: var(--accent-orange);
+}
+
+.menu-paleta-opcion-activa {
+    background: var(--primary-soft);
+    color: var(--accent-orange);
+    box-shadow: inset 0 0 0 1px rgba(238, 113, 53, .35);
+}
+
+.menu-paleta-muestra {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 4px;
+}
+
+.lienzo-imagen-visor {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+    transition: transform .2s ease;
+}
+
+.lienzo-dibujando {
+    cursor: crosshair;
+}
+
+.lienzo-borrando {
+    cursor: pointer;
+}
+
+.capa-anotaciones {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.forma-anotacion {
+    fill-opacity: .15;
+    stroke-width: 0.5;
+}
+
+.contenedor-imagen-visor {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #0e1115;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 14px;
+    padding: 20px;
+    min-height: 320px;
+    box-shadow: inset 0 2px 14px rgba(0, 0, 0, .5);
+}
+
+.lienzo-imagen-visor img {
+    display: block;
+    max-width: 100%;
+    max-height: 65vh;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .6);
+}
+
+.barra-temperatura {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    bottom: 20px;
+    width: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(18, 22, 28, .75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 12px;
+    padding: 12px 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+}
+
+.gradiente-temperatura {
+    flex: 1;
+    width: 14px;
+    margin: 8px 0;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, .15);
+    /* Degradado por defecto (Iron Red); VisorPage lo reemplaza según la paleta elegida */
+    background: linear-gradient(
+        to top,
+        #000000 0%,
+        #3a0d5c 20%,
+        #8b1a6b 40%,
+        #d43d51 60%,
+        #f58b2c 80%,
+        #fdf3a0 100%
+    );
+}
+
+.temp-max {
+    color: #ff9d82;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .8);
+}
+
+.temp-min {
+    color: #9cbaff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .8);
+}
+
+.visor-panel {
+    width: 380px;
+    min-width: 340px;
+    max-width: 430px;
+    flex-shrink: 0;
+    background-color: var(--surface);
+    border-left: 1px solid var(--border-soft);
+    padding: 22px;
+    overflow-y: auto;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.visor-panel h4 {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.info-imagen {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 18px 0;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(255, 240, 232, 0.7) 0%, rgba(251, 250, 244, 0.95) 100%);
+    border: 1px solid rgba(238, 113, 53, 0.2);
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    text-align: center;
+    transition: transform .2s var(--ease-spring), box-shadow .2s ease;
+}
+
+.info-imagen:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+}
+
+.info-imagen div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.info-imagen strong {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.grupo-exportar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.boton-exportar-visor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    background-color: var(--surface);
+    color: #333;
+    font-size: 12px;
+    font-weight: normal;
+    cursor: pointer;
+    text-align: left;
+}
+
+.boton-exportar-visor:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: var(--surface);
+}
+
+.aviso-pendiente {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #9a6b00;
+    background-color: #fff3d6;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+/* ---- Panel del visor: propiedades y anotaciones editables ---- */
+
+.visor-panel-subtitulo {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    font-weight: 700;
+}
+
+/* ---- Puntos de medición: lista debajo del cuadro Máx/Mín/ΔTemp ---- */
+
+.puntos-medicion {
+    margin: 18px 0;
+}
+
+.lista-puntos-medicion {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.punto-medicion-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: var(--surface-muted);
+    border: 1px solid var(--border-soft);
+    border-radius: 9px;
+    font-size: 12px;
+    transition: all .2s var(--ease-spring);
+}
+
+.punto-medicion-item:hover {
+    background-color: var(--primary-soft);
+    border-color: rgba(238, 113, 53, .3);
+    transform: translateX(3px);
+}
+
+.punto-medicion-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px #fff, 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+.punto-medicion-etiqueta {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.punto-medicion-valor {
+    margin-left: auto;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.tabla-propiedades {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 12px 0 20px;
+}
+
+.tabla-propiedades tr {
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.tabla-propiedades th {
+    text-align: left;
+    padding: 7px 0;
+    color: var(--text-muted);
+    font-weight: 600;
+    width: 55%;
+}
+
+.tabla-propiedades td {
+    padding: 7px 0;
+    color: var(--text-main);
+    text-align: right;
+}
+
+.tabla-editable-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 18px 0 8px;
+}
+
+.boton-agregar-fila {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 6px;
+    background: var(--primary-soft);
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.boton-agregar-fila:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.tabla-editable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 12px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-soft);
+}
+
+.tabla-editable th {
+    text-align: left;
+    padding: 8px 10px;
+    color: var(--text-muted);
+    font-weight: 700;
+    background-color: rgba(251, 250, 244, 0.7);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.tabla-editable td {
+    padding: 4px 6px;
+    border-bottom: 1px solid rgba(23, 34, 45, 0.06);
+}
+
+.tabla-editable input {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 6px 8px;
+    font-size: 12px;
+    color: var(--text-main);
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: all .15s ease;
+}
+
+.tabla-editable input:focus {
+    background: var(--surface);
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 0 2px var(--focus-ring) !important;
+    outline: none;
+}
+
+.boton-quitar-fila {
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border: none;
+    background: transparent;
+    color: #b3261e;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.boton-quitar-fila:hover {
+    background: #fde2e2;
+    border-radius: 4px;
+}
+
+.area-notas-visor {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 90px;
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 10px 12px;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--text-main);
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 20px;
+    transition: all .15s ease;
+}
+
+.area-notas-visor:focus {
+    background: var(--surface);
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 2px var(--focus-ring);
+    outline: none;
+}
+
+/* ---- Secciones Técnicas y Tablas de Parámetros/Información ---- */
+
+.contenedor-seccion-tecnica {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.encabezado-seccion-tecnica {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .6px;
+}
+
+.encabezado-seccion-tecnica i {
+    color: var(--accent-orange);
+    font-size: 12px;
+}
+
+.tabla-datos-tecnicos {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.tabla-datos-tecnicos tr {
+    transition: background-color .15s ease;
+}
+
+.tabla-datos-tecnicos tr:not(:last-child) th,
+.tabla-datos-tecnicos tr:not(:last-child) td {
+    border-bottom: 1px solid rgba(23, 34, 45, 0.07);
+}
+
+.tabla-datos-tecnicos tr:hover {
+    background-color: var(--surface-muted);
+}
+
+.tabla-datos-tecnicos th {
+    width: 44%;
+    padding: 9px 12px;
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 600;
+    background-color: rgba(251, 250, 244, 0.7);
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.tabla-datos-tecnicos td {
+    width: 56%;
+    padding: 9px 12px;
+    text-align: right;
+    color: var(--text-main);
+    font-weight: 600;
+    vertical-align: middle;
+    word-break: break-word;
+}
+
+.valor-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 11.5px;
+    letter-spacing: -0.2px;
+}
+
+.valor-destacado {
+    color: var(--primary-color);
+    font-weight: 800;
+}
+
+.valor-coordenadas {
+    color: var(--accent-orange);
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.valor-fecha {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Stepper horizontal compacto para temperatura reflejada */
+
+.stepper-temp-reflejada {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    background: var(--surface);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+    transition: border-color .2s ease;
+}
+
+.stepper-temp-reflejada:focus-within {
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.btn-stepper {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-main) !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    transition: background-color .15s ease, color .15s ease !important;
+}
+
+.btn-stepper:hover {
+    background-color: var(--primary-soft) !important;
+    color: var(--accent-orange) !important;
+    transform: none !important;
+}
+
+.input-stepper {
+    width: 36px !important;
+    height: 26px !important;
+    border: none !important;
+    background: transparent !important;
+    text-align: center !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    padding: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.input-stepper::-webkit-outer-spin-button,
+.input-stepper::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.unidad-stepper {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding-right: 6px;
+    user-select: none;
+}
+
+/* Tarjeta de un rectángulo medido: Máx. / Mín. / Avg., con el mismo aire
+   que el cuadro Máx/Mín/ΔTemp de la imagen. */
+
+.zona-medicion {
+    padding: 12px 14px;
+    border: 1px solid #f1dccb;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fff4ea 0%, #fdf8f1 100%);
+}
+
+.zona-medicion-titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.zona-medicion-valores {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    text-align: center;
+}
+
+.zona-medicion-dato span {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: #7a7a7a;
+}
+
+.zona-medicion-dato strong {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1c1c1c;
+}
+
+/* ---- Herramienta de rango térmico: pista con manijas arrastrables ---- */
+
+.pista-rango {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    margin: 8px 0;
+    touch-action: none;
+}
+
+.rango-gradiente {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 14px;
+    transform: translateX(-50%);
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, .15);
+}
+
+.rango-gris {
+    position: absolute;
+    left: 50%;
+    width: 14px;
+    transform: translateX(-50%);
+    background: rgba(200, 200, 200, .85);
+    pointer-events: none;
+}
+
+.manija-rango {
+    position: absolute;
+    left: 50%;
+    width: 30px;
+    height: 12px;
+    transform: translate(-50%, -50%);
+    border-radius: 6px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .5);
+    cursor: ns-resize;
+    touch-action: none;
+    z-index: 2;
+    transition: transform .12s ease;
+}
+
+.manija-rango:hover {
+    transform: translate(-50%, -50%) scale(1.12);
+}
+
+.manija-rango-max {
+    background: #ff4d4f;
+}
+
+.manija-rango-min {
+    background: #4dabf7;
+}
+
+/* ---- Zoom de la imagen: recuadro, contenido ampliable y controles ---- */
+
+.zoom-viewport {
+    position: relative;
+    flex: 1;
+    align-self: stretch;
+    min-width: 0;
+    margin-right: 76px; /* deja libre la barra de temperatura */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 8px;
+    user-select: none;
+}
+
+.zoom-contenido {
+    display: inline-block;
+    line-height: 0;
+    max-width: 100%;
+    will-change: transform;
+}
+
+.controles-zoom {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    background: rgba(18, 22, 28, .75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.controles-zoom button {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+.controles-zoom button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, .18);
+}
+
+.controles-zoom button:disabled {
+    opacity: .35;
+    cursor: default;
+}
+
+.controles-zoom-valor {
+    min-width: 42px;
+    text-align: center;
+}

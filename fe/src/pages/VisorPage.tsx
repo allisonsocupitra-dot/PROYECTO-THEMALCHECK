@@ -4,7 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useGaleria } from '../context/GaleriaContext';
 import NavLateral from '../components/NavLateral';
+import BarraRangoTermico from '../components/BarraRangoTermico';
+import ZoomImagen from '../components/ZoomImagen';
 import { TablaParametros, TablaInfoImagen } from '../components/TablasPropiedades';
+import { useRangoTermico } from '../hooks/useRangoTermico';
 import { aplanarImagenes } from '../utils/arbolCarpetas';
 import { formatearTemperatura, TEMP_REFLEJADA_POR_DEFECTO } from '../utils/temperaturas';
 import {
@@ -20,7 +23,8 @@ import '../styles/styles.css';
 import '../styles/dashboard.css';
 import '../styles/visor.css';
 import '../styles/modal.css';
-import { exportarInforme } from '../api/Informes'; // ajusta la ruta según dónde la tengas
+import { exportarInforme, exportarInformeDoc } from '../api/Informes';
+import type { PuntoPdf, ExportarInformePayload } from '../api/Informes';
 
 type Herramienta = 'ninguna' | 'punto' | 'rectangulo' | 'circulo' | 'borrar';
 
@@ -311,12 +315,91 @@ const dibujarAnotacionEnCanvas = (ctx: CanvasRenderingContext2D, a: Anotacion, a
   }
 };
 
+// ---------- Utilidades para exportar (PDF, DOC e imagen) ----------
+
+// Busca el primer valor definido entre varias posibles claves
+const buscarValor = (origen: unknown, claves: string[]): unknown => {
+  const obj = (origen ?? {}) as Record<string, unknown>;
+  for (const c of claves) {
+    const v = obj[c];
+    if (v !== undefined && v !== null && v !== '') return v;
+  }
+  return undefined;
+};
+
+const textoONada = (v: unknown): string | undefined => (v === undefined ? undefined : String(v));
+
+// Añade la unidad solo si el valor todavía no la trae (p. ej. "9.1" -> "9.1 mm")
+const conUnidad = (v: unknown, sufijo: string): string | undefined => {
+  if (v === undefined) return undefined;
+  const s = String(v);
+  return /[a-zA-Z%]/.test(s) ? s : `${s}${sufijo}`;
+};
+
+// Fecha en el formato del reporte: 2026/08/20 08:07:23
+const formatearFechaPdf = (valor: unknown): string => {
+  const d = new Date(valor as string);
+  if (Number.isNaN(d.getTime())) return String(valor ?? '');
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+
+// Guarda un archivo: con "Guardar como" si el navegador lo permite; si no, descarga directa
+const guardarArchivo = async (blob: Blob, nombre: string, descripcion: string, mime: string) => {
+  if ('showSaveFilePicker' in window) {
+    const ext = nombre.slice(nombre.lastIndexOf('.'));
+    const handle = await (window as any).showSaveFilePicker({
+      suggestedName: nombre,
+      types: [{ description: descripcion, accept: { [mime]: [ext] } }],
+    });
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+// Compone la imagen (con la paleta y el rango elegidos) + las marcas en un canvas
+// y la devuelve como data URL (base64) en el formato pedido
+const componerImagenAnotada = (url: string, anotaciones: Anotacion[], tipo = 'image/jpeg'): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('No se pudo preparar la imagen'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      anotaciones.forEach((a) => dibujarAnotacionEnCanvas(ctx, a, canvas.width, canvas.height));
+      try {
+        resolve(canvas.toDataURL(tipo, 0.92));
+      } catch {
+        reject(new Error('No se pudo leer la imagen para exportarla'));
+      }
+    };
+    img.onerror = () => reject(new Error('No se pudo cargar la imagen para exportarla'));
+    img.src = url;
+  });
+
 const VisorPage: React.FC = () => {
   const { usuario } = useAuth();
   const { t } = useLanguage();
   const { carpetas, imagenSeleccionadaId, seleccionarImagen, registrarReporte, actualizarImagen } = useGaleria();
   const [avisoPendiente, setAvisoPendiente] = useState(false);
   const [avisoGuardado, setAvisoGuardado] = useState(false);
+  const [errorExportacion, setErrorExportacion] = useState<string | null>(null);
 
   const [edicionActiva, setEdicionActiva] = useState(false);
   const [menuExportarAbierto, setMenuExportarAbierto] = useState(false);
@@ -405,11 +488,34 @@ const VisorPage: React.FC = () => {
     ? paletaPorImagen[imagenActiva.id] ?? PALETA_POR_DEFECTO
     : PALETA_POR_DEFECTO;
   const coloresPaletaActiva = PALETAS.find((p) => p.id === paletaActiva)?.colores ?? [];
-  const urlImagenActiva = imagenActiva
+  const urlBaseImagen = imagenActiva
     ? paletaActiva === PALETA_POR_DEFECTO
       ? imagenActiva.urlPrevia
       : urlPaletaPorImagen[`${imagenActiva.id}:${paletaActiva}`] ?? imagenActiva.urlPrevia
     : '';
+
+  // Escala completa de la imagen (la recalcula el backend al cambiar la temp. reflejada)
+  const limiteMin = imagenActiva
+    ? temperaturasPorImagen[imagenActiva.id]?.min ?? imagenActiva.temperaturaMin
+    : undefined;
+  const limiteMax = imagenActiva
+    ? temperaturasPorImagen[imagenActiva.id]?.max ?? imagenActiva.temperaturaMax
+    : undefined;
+
+  // Herramienta de rango térmico: las manijas de la barra recolorean la imagen
+  const rangoTermico = useRangoTermico({
+    idImagen: imagenActiva?.id,
+    idBackend: imagenActiva?.idBackend,
+    ancho: imagenActiva?.infoImagen?.ancho,
+    alto: imagenActiva?.infoImagen?.alto,
+    limiteMin,
+    limiteMax,
+    colores: coloresPaletaActiva,
+  });
+
+  // Si hay un rango ajustado, la imagen recoloreada reemplaza a la original
+  // (también es la que se exporta, porque las exportaciones leen urlImagenActiva)
+  const urlImagenActiva = rangoTermico.urlRango ?? urlBaseImagen;
 
   const handleSeleccionarPaleta = async (id: IdPaleta) => {
     if (!imagenActiva) return;
@@ -688,6 +794,8 @@ const VisorPage: React.FC = () => {
     temporizadoresTempRef.current[idImagenActiva] = window.setTimeout(async () => {
       try {
         const respuesta = await actualizarTemperaturaReflejada(idBackend, valor);
+        // La matriz y la escala cambiaron: el rango ajustado ya no aplica
+        rangoTermico.reiniciar(idImagenActiva);
         aplicarPuntosGuardados(idImagenActiva, respuesta.puntos, dims);
         // Se copia al contexto para que al volver al visor se vea el valor actualizado
         actualizarImagen(idImagenActiva, {
@@ -711,42 +819,118 @@ const VisorPage: React.FC = () => {
     }, 500);
   };
 
+  // Exporta el reporte en PDF o DOC (Word). Ambos usan el mismo payload; cambia
+  // el endpoint al que se llama y el archivo que se guarda.
   const handleExportarReporte = async (formato: 'PDF' | 'DOC') => {
     if (!imagenActiva) return;
     setMenuExportarAbierto(false);
+    setErrorExportacion(null);
 
-    if (formato === 'PDF') {
-      try {
-        const pdfBlob = await exportarInforme({
-          nombre_archivo: imagenActiva.archivo.name.replace(/\.[^/.]+$/, ''),
-          nivel_riesgo: 'TODO', // TODO: conectar con el campo real cuando exista en el visor
-          observaciones: notas || undefined,
-          estado: 'TODO', // TODO: conectar con el campo real
-          id_usuario: usuario?.id ? Number(usuario.id) : 0, // ajusta el campo según cómo guardes el id en AuthContext
+    try {
+      // Se guardan puntos y notas antes de exportar, así la BD y el reporte coinciden
+      if (imagenActiva.idBackend) await guardarTodo([imagenActiva.id]);
+
+      const nombreBase = imagenActiva.archivo.name.replace(/\.[^/.]+$/, '');
+
+      // Imagen con paleta, rango y marcas tal como se ve en pantalla
+      const imagenBase64 = await componerImagenAnotada(urlImagenActiva, anotaciones);
+
+      // Measurements: SP# -> VALUE, R#/C# -> MAX / MIN / AVG
+      const puntosPdf: PuntoPdf[] = [];
+      let nPunto = 0;
+      let nRect = 0;
+      let nCirc = 0;
+      anotaciones.forEach((a) => {
+        if (a.tipo === 'punto') {
+          nPunto += 1;
+          puntosPdf.push({ etiqueta: `SP${nPunto}`, tipo: 'punto', valor: a.valorTemp ?? null });
+          return;
+        }
+        const esRect = a.tipo === 'rectangulo';
+        if (esRect) nRect += 1;
+        else nCirc += 1;
+        puntosPdf.push({
+          etiqueta: esRect ? `R${nRect}` : `C${nCirc}`,
+          tipo: 'region',
+          valor_max: a.resumen?.max ?? null,
+          valor_min: a.resumen?.min ?? null,
+          valor_avg: a.resumen?.avg ?? null,
         });
+      });
 
-        if ('showSaveFilePicker' in window) {
-          const handle = await (window as any).showSaveFilePicker({
-            suggestedName: `${imagenActiva.archivo.name.replace(/\.[^/.]+$/, '')}.pdf`,
-            types: [{ description: 'Archivo PDF', accept: { 'application/pdf': ['.pdf'] } }],
-          });
-          const writable = await handle.createWritable();
-          await writable.write(pdfBlob);
-          await writable.close();
-        } else {
-          const url = URL.createObjectURL(pdfBlob);
-          const enlace = document.createElement('a');
-          enlace.href = url;
-          enlace.download = `${imagenActiva.archivo.name.replace(/\.[^/.]+$/, '')}.pdf`;
-          enlace.click();
-          URL.revokeObjectURL(url);
-        }
-      } catch (err: any) {
-        if (err?.name !== 'AbortError') {
-          console.error('Error exportando el informe PDF:', err);
-        }
-        return; // no marcamos como registrado si falló o el usuario canceló
+      // Parameters
+      const par = (imagenParaPanel?.parametros ?? {}) as Record<string, unknown>;
+      const parametros: Record<string, string> = {};
+      const distancia = conUnidad(buscarValor(par, ['distancia', 'distance']), ' m');
+      const humedad = conUnidad(buscarValor(par, ['humedad', 'humidity']), '%');
+      const emisividad = textoONada(buscarValor(par, ['emisividad', 'emissivity']));
+      const tempRefl = Number(par.tempReflejada);
+      if (distancia) parametros['Distance'] = distancia;
+      if (humedad) parametros['Humidity'] = humedad;
+      if (emisividad) parametros['Emissivity'] = emisividad;
+      if (Number.isFinite(tempRefl)) parametros['Reflected Temp'] = `${formatearTemperatura(tempRefl)}°C`;
+
+      // Image Info
+      const inf = (imagenActiva.infoImagen ?? {}) as Record<string, unknown>;
+      const infoImagen: Record<string, string> = {};
+      const agregar = (etiqueta: string, valor: string | undefined) => {
+        if (valor) infoImagen[etiqueta] = valor;
+      };
+      const lat = buscarValor(inf, ['latitud', 'latitude', 'lat']);
+      const lon = buscarValor(inf, ['longitud', 'longitude', 'lon', 'lng']);
+      agregar('Model', textoONada(buscarValor(inf, ['modelo', 'model'])));
+      agregar('Serial Number', textoONada(buscarValor(inf, ['numeroSerie', 'serie', 'serialNumber', 'numSerie'])));
+      agregar('Focal Length', conUnidad(buscarValor(inf, ['distanciaFocal', 'focal', 'focalLength']), ' mm'));
+      agregar('F-Number', textoONada(buscarValor(inf, ['apertura', 'fNumber', 'numeroF'])));
+      agregar('Width', textoONada(buscarValor(inf, ['ancho', 'width'])));
+      agregar('Height', textoONada(buscarValor(inf, ['alto', 'height'])));
+      agregar('Created', textoONada(buscarValor(inf, ['fechaCreacion', 'creada', 'created'])));
+      agregar('Modified', textoONada(buscarValor(inf, ['fechaModificacion', 'modificada', 'modified'])));
+      agregar(
+        'Coordinates',
+        textoONada(
+          buscarValor(inf, ['coordenadas', 'coordinates', 'gps']) ??
+            (lat !== undefined && lon !== undefined ? `${lat}, ${lon}` : undefined)
+        )
+      );
+
+      const payload: ExportarInformePayload = {
+        nombre_archivo: nombreBase,
+        nivel_riesgo: 'TODO', // TODO: conectar con el campo real cuando exista en el visor
+        observaciones: notas || undefined,
+        estado: 'TODO', // TODO: conectar con el campo real
+        id_usuario: usuario?.id ? Number(usuario.id) : 0, // ajusta el campo según cómo guardes el id en AuthContext
+        fecha: formatearFechaPdf(imagenActiva.fecha),
+        imagen_base64: imagenBase64,
+        puntos: puntosPdf,
+        parametros,
+        info_imagen: infoImagen,
+        escala: {
+          temp_min: rangoTermico.tMin ?? limiteMin ?? null,
+          temp_max: rangoTermico.tMax ?? limiteMax ?? null,
+          colores: coloresPaletaActiva.map(String),
+        },
+      };
+
+      if (formato === 'PDF') {
+        const pdfBlob = await exportarInforme(payload);
+        await guardarArchivo(pdfBlob, `${nombreBase}.pdf`, 'Archivo PDF', 'application/pdf');
+      } else {
+        const docBlob = await exportarInformeDoc(payload);
+        await guardarArchivo(
+          docBlob,
+          `${nombreBase}.docx`,
+          'Documento de Word',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        );
       }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        console.error(`Error exportando el informe ${formato}:`, err);
+        setErrorExportacion(err?.message || `No se pudo generar el ${formato}`);
+        window.setTimeout(() => setErrorExportacion(null), 6000);
+      }
+      return; // no marcamos como registrado si falló o el usuario canceló
     }
 
     registrarReporte(imagenActiva.archivo.name, imagenActiva.carpeta, formato);
@@ -770,36 +954,24 @@ const VisorPage: React.FC = () => {
     }
   };
 
-  // Compone la imagen original + las figuras marcadas en un canvas y descarga el resultado,
-  // así las anotaciones quedan fijas en el archivo exportado
-  const handleExportarImagen = () => {
+  // Compone la imagen (con la paleta y el rango elegidos) + las figuras marcadas
+  // y la guarda como PNG, así las anotaciones quedan fijas en el archivo exportado
+  const handleExportarImagen = async () => {
     if (!imagenActiva) return;
     setMenuExportarAbierto(false);
-
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      ctx.drawImage(img, 0, 0);
-      anotaciones.forEach((a) => dibujarAnotacionEnCanvas(ctx, a, canvas.width, canvas.height));
-
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const enlace = document.createElement('a');
-        enlace.href = url;
-        enlace.download = `marcada-${imagenActiva.archivo.name}`;
-        enlace.click();
-        URL.revokeObjectURL(url);
-      }, 'image/png');
-    };
-    // Se exporta con la paleta que el usuario tiene elegida en pantalla
-    img.src = urlImagenActiva;
+    setErrorExportacion(null);
+    try {
+      const nombreBase = imagenActiva.archivo.name.replace(/\.[^/.]+$/, '');
+      const dataUrl = await componerImagenAnotada(urlImagenActiva, anotaciones, 'image/png');
+      const blob = await (await fetch(dataUrl)).blob();
+      await guardarArchivo(blob, `marcada-${nombreBase}.png`, 'Imagen PNG', 'image/png');
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        console.error('Error exportando la imagen:', err);
+        setErrorExportacion(err?.message || 'No se pudo exportar la imagen');
+        window.setTimeout(() => setErrorExportacion(null), 6000);
+      }
+    }
   };
 
   // Todas las coordenadas se guardan en % relativos a la imagen renderizada,
@@ -1223,6 +1395,13 @@ const VisorPage: React.FC = () => {
                       </p>
                     )}
 
+                    {errorExportacion && (
+                      <p className="aviso-pendiente aviso-pendiente-superior" style={{ color: '#b42318' }}>
+                        <i className="fa-solid fa-circle-exclamation" style={{ fontSize: '13px' }}></i>{' '}
+                        {errorExportacion}
+                      </p>
+                    )}
+
                     <div className="area-imagen-y-herramientas">
                       {edicionActiva && (
                         <aside className="barra-herramientas-visor">
@@ -1317,42 +1496,43 @@ const VisorPage: React.FC = () => {
                       )}
 
                       <div className="contenedor-imagen-visor">
-                        <div
-                          ref={contenedorImagenRef}
-                          className={`lienzo-imagen-visor ${
-                            herramienta === 'borrar'
-                              ? 'lienzo-borrando'
-                              : herramienta !== 'ninguna'
-                              ? 'lienzo-dibujando'
-                              : ''
-                          }`}
-                          onMouseDown={handleMouseDown}
-                        >
-                          <img
-                            src={urlImagenActiva}
-                            alt={imagenActiva.archivo.name}
-                            draggable={false}
-                            onDragStart={(e) => e.preventDefault()}
-                          />
-
-                          <svg className="capa-anotaciones" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            {anotaciones.map((a) => renderAnotacion(a))}
-                            {dibujando && renderAnotacion(dibujando)}
-                          </svg>
-                        </div>
-
-                        <div className="barra-temperatura">
-                          <span className="temp-max">
-                            {formatearTemperatura(temperaturasPorImagen[imagenActiva.id]?.max ?? imagenActiva.temperaturaMax)}°C
-                          </span>
+                        {/* Zoom: rueda del mouse, botones y arrastre (con la flecha de selección) */}
+                        <ZoomImagen reiniciarCon={imagenActiva.id} desplazable={herramienta === 'ninguna'}>
                           <div
-                            className="gradiente-temperatura"
-                            style={{ background: gradientePaleta(coloresPaletaActiva) }}
-                          ></div>
-                          <span className="temp-min">
-                            {formatearTemperatura(temperaturasPorImagen[imagenActiva.id]?.min ?? imagenActiva.temperaturaMin)}°C
-                          </span>
-                        </div>
+                            ref={contenedorImagenRef}
+                            className={`lienzo-imagen-visor ${
+                              herramienta === 'borrar'
+                                ? 'lienzo-borrando'
+                                : herramienta !== 'ninguna'
+                                ? 'lienzo-dibujando'
+                                : ''
+                            }`}
+                            onMouseDown={handleMouseDown}
+                          >
+                            <img
+                              src={urlImagenActiva}
+                              alt={imagenActiva.archivo.name}
+                              draggable={false}
+                              onDragStart={(e) => e.preventDefault()}
+                            />
+
+                            <svg className="capa-anotaciones" viewBox="0 0 100 100" preserveAspectRatio="none">
+                              {anotaciones.map((a) => renderAnotacion(a))}
+                              {dibujando && renderAnotacion(dibujando)}
+                            </svg>
+                          </div>
+                        </ZoomImagen>
+
+                        {/* Barra de temperatura con manijas arrastrables (rango térmico) */}
+                        <BarraRangoTermico
+                          limiteMin={limiteMin}
+                          limiteMax={limiteMax}
+                          tMin={rangoTermico.tMin}
+                          tMax={rangoTermico.tMax}
+                          gradiente={gradientePaleta(coloresPaletaActiva)}
+                          onCambiarRango={rangoTermico.cambiarRango}
+                          onRestablecer={rangoTermico.restablecer}
+                        />
                       </div>
                     </div>
                   </div>

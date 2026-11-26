@@ -1,50 +1,52 @@
-# HU-007 — Comparación de imágenes
+# HU-007 — Comparación simultánea de imágenes
 
 <!--
-  ¿Qué? Historia de usuario que describe la comparación simultánea de dos imágenes térmicas del mismo equipo.
-  ¿Para qué? Detectar diferencias de temperatura entre distintos periodos o estados de un equipo.
-  ¿Impacto? Cierra el módulo de Gestión de Imágenes con una funcionalidad analítica de alto valor para el rol de analista.
+  ¿Qué? Historia de usuario que describe la comparación simultánea lado a lado de dos imágenes térmicas.
+  ¿Para qué? Detectar diferencias de temperatura entre distintos periodos o estados de un mismo equipo.
+  ¿Impacto? Funcionalidad planificada para ampliar la capacidad analítica del visor; actualmente no implementada.
 -->
 
 ---
 
 ## Identificación
 
-| Campo            | Valor                       |
-| ---------------- | ------------------------------|
-| **ID**           | HU-007                        |
-| **Título**       | Comparación de imágenes       |
-| **Módulo**       | Gestión de Imágenes           |
-| **Prioridad**    | Por definir                   |
-| **Estado**       | Por definir                   |
-| **RF asociados** | Por definir                   |
+| Campo            | Valor                            |
+| ---------------- | -------------------------------- |
+| **ID**           | HU-007                           |
+| **Título**       | Comparación simultánea de imágenes |
+| **Módulo**       | Gestión de Imágenes              |
+| **Prioridad**    | Media                            |
+| **Estado**       | Pendiente (No implementado)      |
+| **RF asociados** | RF013                            |
 
 ---
 
 ## Historia
 
-**Como** analista,
-**quiero** comparar dos imágenes térmicas del mismo equipo,
-**para** detectar diferencias de temperatura entre periodos o estados.
+**Como** analista o técnico,
+**quiero** comparar dos imágenes térmicas del mismo equipo simultáneamente lado a lado,
+**para** detectar diferencias de temperatura entre periodos o estados operativos.
 
 ---
 
 ## Criterios de aceptación
 
-### CA-007.1 — Carga simultánea de dos imágenes
+> **Estado actual en el proyecto instalado:** Esta funcionalidad aún no se encuentra implementada. Actualmente el visor (`VisorPage.tsx`) muestra una sola imagen a la vez y permite alternar entre imágenes de la carpeta mediante pestañas superiores.
+
+### CA-007.1 — Carga simultánea de dos imágenes *(Pendiente)*
 
 - **Dado que** quiero comparar dos imágenes térmicas,
-- **cuando** las cargo en el sistema,
-- **entonces** este debe permitir la visualización simultánea de ambas.
+- **cuando** active el modo comparación en el visor,
+- **entonces** el sistema deberá permitir seleccionar dos imágenes y visualizarlas simultáneamente.
 
-### CA-007.2 — Visualización lado a lado sin deformación
+### CA-007.2 — Visualización lado a lado sin deformación *(Pendiente)*
 
-- **Dado que** cargué dos imágenes para comparar,
-- **cuando** se muestran en pantalla,
-- **entonces** deben presentarse lado a lado sin deformación ni pérdida de calidad.
+- **Dado que** seleccioné dos imágenes para comparar,
+- **cuando** se muestren en pantalla,
+- **entonces** deberán presentarse lado a lado conservando su proporción y escala térmica independiente o sincronizada.
 
-### CA-007.3 — Rendimiento durante la comparación
+### CA-007.3 — Rendimiento durante la comparación *(Pendiente)*
 
 - **Dado que** estoy comparando dos imágenes térmicas,
-- **cuando** realizo la inspección visual,
-- **entonces** el rendimiento general del sistema no debe verse afectado.
+- **cuando** realice la inspección visual o ajuste zoom/paletas,
+- **entonces** el rendimiento general de la interfaz deberá mantenerse fluido.

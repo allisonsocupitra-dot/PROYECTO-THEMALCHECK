@@ -1,50 +1,50 @@
-# HU-005 — Visualización de imágenes
+# HU-005 — Visualización de imágenes térmicas
 
 <!--
-  ¿Qué? Historia de usuario que describe la visualización en pantalla de una imagen térmica cargada.
-  ¿Para qué? Permitir la inspección visual del contenido antes de ejecutar el análisis automático.
-  ¿Impacto? Depende de HU-004 (carga de imágenes) y es prerrequisito visual para HU-006 (cambio de paleta) y HU-007 (comparación).
+  ¿Qué? Historia de usuario que describe la inspección visual de imágenes en el explorador y en el visor interactivo.
+  ¿Para qué? Permitir revisar cada captura con zoom, escala térmica, metadatos y pestañas por carpeta.
+  ¿Impacto? Habilita la inspección visual y sirve de base para las mediciones, cambio de paleta y exportación.
 -->
 
 ---
 
 ## Identificación
 
-| Campo            | Valor                        |
-| ---------------- | -------------------------------|
-| **ID**           | HU-005                         |
-| **Título**       | Visualización de imágenes      |
-| **Módulo**       | Gestión de Imágenes            |
-| **Prioridad**    | Por definir                    |
-| **Estado**       | Por definir                    |
-| **RF asociados** | Por definir                    |
+| Campo            | Valor                              |
+| ---------------- | ---------------------------------- |
+| **ID**           | HU-005                             |
+| **Título**       | Visualización de imágenes térmicas |
+| **Módulo**       | Gestión de Imágenes                |
+| **Prioridad**    | Alta                               |
+| **Estado**       | Implementado                       |
+| **RF asociados** | RF003, RF014                       |
 
 ---
 
 ## Historia
 
 **Como** usuario,
-**quiero** ver la imagen térmica cargada en pantalla,
-**para** inspeccionar visualmente el contenido antes del análisis.
+**quiero** visualizar las imágenes térmicas cargadas tanto en vista previa como en el visor interactivo con zoom y metadatos,
+**para** inspeccionar en detalle los equipos antes y durante la toma de mediciones.
 
 ---
 
 ## Criterios de aceptación
 
-### CA-005.1 — Renderizado sin demora
+### CA-005.1 — Vista previa rápida en el explorador (`/dashboard`)
 
-- **Dado que** cargué una imagen térmica,
-- **cuando** esta se muestra en pantalla,
-- **entonces** debe renderizarse sin demora visible.
+- **Dado que** cargué imágenes en una carpeta,
+- **cuando** selecciono una miniatura con un clic,
+- **entonces** el panel lateral derecho muestra la imagen en vista previa junto con su fecha, tabla de `PARÁMETROS` y tabla de `INFORMACIÓN DE LA IMAGEN`.
 
-### CA-005.2 — Conservación de calidad y proporción
+### CA-005.2 — Apertura en el visor (`/visor`) y navegación por pestañas
 
-- **Dado que** la imagen se está visualizando,
-- **cuando** la observo en la interfaz,
-- **entonces** debe conservar la calidad y proporción original de la imagen.
+- **Dado que** hago doble clic sobre una miniatura o presiono el botón de abrir en el visor,
+- **cuando** accedo a `/visor`,
+- **entonces** se muestran en la barra superior las pestañas de todas las imágenes pertenecientes a la misma carpeta activa para alternar entre ellas sin perder su estado.
 
-### CA-005.3 — Visualización completa en la interfaz principal
+### CA-005.3 — Zoom interactivo y conservación de proporción
 
-- **Dado que** la imagen fue cargada,
-- **cuando** accedo a la interfaz principal,
-- **entonces** debo poder observar la imagen completa sin recortes.
+- **Dado que** estoy inspeccionando una imagen en `/visor`,
+- **cuando** uso la rueda del mouse o los controles de zoom (`Acercar`, `Alejar`, `Restablecer`) entre `100%` y `800%` y arrastro la imagen ampliada,
+- **entonces** la imagen conserva su proporción original, se amplía hacia el cursor y mantiene alineadas las anotaciones y la barra de escala térmica.

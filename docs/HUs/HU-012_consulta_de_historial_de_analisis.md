@@ -1,50 +1,50 @@
-# HU-012 — Consulta de historial de análisis
+# HU-012 — Consulta de historial de análisis y reportes
 
 <!--
-  ¿Qué? Historia de usuario que describe la consulta de análisis realizados anteriormente por el usuario.
-  ¿Para qué? Permitir la revisión de resultados previos y la comparación de tendencias a lo largo del tiempo.
-  ¿Impacto? Extiende el valor de HU-011 al convertir reportes puntuales en un registro histórico consultable.
+  ¿Qué? Historia de usuario que describe la consulta de imágenes analizadas e informes generados anteriormente.
+  ¿Para qué? Permitir revisar resultados previos tanto por el técnico como por el administrador.
+  ¿Impacto? Garantiza trazabilidad de imágenes/mediciones y acceso a los informes PDF almacenados en el sistema.
 -->
 
 ---
 
 ## Identificación
 
-| Campo            | Valor                                  |
-| ---------------- | ------------------------------------------|
-| **ID**           | HU-012                                    |
-| **Título**       | Consulta de historial de análisis         |
-| **Módulo**       | Reportes                                  |
-| **Prioridad**    | Por definir                               |
-| **Estado**       | Por definir                               |
-| **RF asociados** | Por definir                               |
+| Campo            | Valor                                         |
+| ---------------- | --------------------------------------------- |
+| **ID**           | HU-012                                        |
+| **Título**       | Consulta de historial de análisis y reportes  |
+| **Módulo**       | Reportes                                      |
+| **Prioridad**    | Media                                         |
+| **Estado**       | Parcialmente implementado                     |
+| **RF asociados** | RF009, RF010                                  |
 
 ---
 
 ## Historia
 
-**Como** usuario,
-**quiero** consultar los análisis realizados anteriormente,
-**para** revisar resultados previos y comparar tendencias.
+**Como** usuario (Técnico o Administrador),
+**quiero** consultar las imágenes analizadas y los reportes generados previamente,
+**para** revisar resultados anteriores y descargar los documentos cuando los necesite.
 
 ---
 
 ## Criterios de aceptación
 
-### CA-012.1 — Almacenamiento del historial por usuario
+### CA-012.1 — Restauración de imágenes, mediciones y notas guardadas
 
-- **Dado que** realizo análisis en el sistema,
-- **cuando** estos finalizan,
-- **entonces** deben almacenarse en un historial asociado a mi usuario.
+- **Dado que** subí imágenes y guardé mediciones/observaciones en sesiones anteriores,
+- **cuando** inicio sesión nuevamente,
+- **entonces** el sistema restaura automáticamente mis carpetas, imágenes, puntos de medición y notas desde MySQL (`GET /api/v1/imagenes/usuario/{id_usuario}`).
 
-### CA-012.2 — Visualización de fecha, estado y resultado
+### CA-012.2 — Vista "Mis reportes" (`/reportes`) para la sesión activa
 
-- **Dado que** accedo a mi historial de análisis,
-- **cuando** reviso un registro,
-- **entonces** debo ver la fecha, el estado y el resultado de dicho análisis.
+- **Dado que** exporté reportes en PDF o DOC durante mi sesión actual,
+- **cuando** accedo a `/reportes`,
+- **entonces** veo una tabla con el nombre de imagen, carpeta, formato (`PDF` o `DOC`) y fecha de generación de los reportes de la sesión. *(Nota: al recargar la página, esta tabla en memoria se reinicia porque aún no consulta la tabla `informe` del técnico desde BD).*
 
-### CA-012.3 — Identificación rápida de evaluaciones anteriores
+### CA-012.3 — Historial persistido por técnico en el Panel Admin (`/admin`)
 
-- **Dado que** consulto mi historial,
-- **cuando** busco una evaluación previa,
-- **entonces** debo poder identificarla de forma rápida dentro de la lista.
+- **Dado que** inicio sesión con rol `Administrador` y accedo a `/admin`,
+- **cuando** busco y selecciono un técnico en la lista (`GET /api/v1/informes/tecnicos`),
+- **entonces** el sistema muestra todos los informes PDF persistidos en MySQL para ese técnico (`GET /api/v1/informes/tecnicos/{id}/informes`) con nombre de archivo, fecha, estado y botón para descargar el PDF desde el servidor.

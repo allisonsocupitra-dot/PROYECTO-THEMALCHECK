@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Rol } from '../types/auth';
 import ModalConfirmacion from '../components/ModalConfirmacion';
+import ClaveAdminModal from '../components/ClaveAdminModal';
 import logo from '../assets/img/Themalcheck-logo.svg';
 import '../styles/styles.css';
 import '../styles/login.css';
@@ -19,20 +20,29 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [mostrarClave, setMostrarClave] = useState(false);
+  const [errorClave, setErrorClave] = useState('');
 
   // useCallback evita que el temporizador del modal se reinicie en cada render
   const irAlDashboard = useCallback(() => navigate('/dashboard'), [navigate]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const iniciarSesion = async (claveAdmin?: string) => {
     setError('');
+    setErrorClave('');
     setCargando(true);
 
-    const resultado = await login(correo, contraseña, rol);
+    const resultado = await login(correo, contraseña, rol, claveAdmin);
 
     setCargando(false);
 
     if (!resultado.ok) {
+      if (resultado.codigo === 'clave') {
+        // el modal sigue abierto y muestra el error
+        setMostrarClave(true);
+        setErrorClave('Clave de administración incorrecta');
+        return;
+      }
+      setMostrarClave(false);
       if (resultado.codigo === 'rol' && resultado.rolReal) {
         const rolReal = resultado.rolReal === 'admin' ? t('register.rol.admin') : t('register.rol.tecnico');
         setError(`${t('login.errorRol')} ${rolReal}`);
@@ -42,8 +52,18 @@ const LoginPage: React.FC = () => {
       return;
     }
 
+    setMostrarClave(false);
     // El login fue exitoso: mostramos la confirmación y solo entonces vamos al explorador
     setMostrarConfirmacion(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (rol === 'admin') {
+      setMostrarClave(true); // primero pedimos la clave en el modal
+      return;
+    }
+    iniciarSesion();
   };
 
   return (
@@ -119,6 +139,14 @@ const LoginPage: React.FC = () => {
           </form>
         </div>
       </div>
+
+      <ClaveAdminModal
+        abierto={mostrarClave}
+        error={errorClave}
+        cargando={cargando}
+        onConfirmar={(clave) => iniciarSesion(clave)}
+        onCancelar={() => { setMostrarClave(false); setErrorClave(''); }}
+      />
 
       <ModalConfirmacion
         abierto={mostrarConfirmacion}

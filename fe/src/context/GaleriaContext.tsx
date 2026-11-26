@@ -16,6 +16,8 @@ import {
   actualizarTemperaturaReflejada as actualizarTemperaturaReflejadaEnBackend,
 } from '../api/ImagenesTermograficas';
 import type { ErrorImagen } from '../api/ImagenesTermograficas';
+import { listarImagenesDeUsuario, eliminarImagenTermografica } from '../api/GaleriaGuardada';
+import type { ImagenRestaurada } from '../api/GaleriaGuardada';
 
 export interface ReporteGenerado {
   id: string;
@@ -40,8 +42,6 @@ interface GaleriaContextType {
   obtenerCarpeta: (id: string) => Carpeta | undefined;
   registrarReporte: (nombreImagen: string, carpeta: string, formato: 'PDF' | 'DOC') => void;
   actualizarTemperaturaReflejada: (imagen: ImagenCargada, valor: number) => void;
-  // NUEVO: copia al contexto lo que se guardó en la BD (puntos, observaciones...),
-  // para que al salir y volver al visor se muestre lo guardado.
   actualizarImagen: (imagenId: string, cambios: Partial<ImagenCargada>) => void;
 }
 
@@ -81,6 +81,63 @@ const crearImagenesDesdeArchivos = (archivos: File[]): ImagenCargada[] =>
     };
   });
 
+// Ruta de nombres de una carpeta dentro del árbol (["Torre A", "Piso 2"])
+const rutaDeCarpeta = (lista: Carpeta[], id: string, acc: string[] = []): string[] | null => {
+  for (const c of lista) {
+    const ruta = [...acc, c.nombre];
+    if (c.id === id) return ruta;
+    const enHijas = rutaDeCarpeta(c.subcarpetas, id, ruta);
+    if (enHijas) return enHijas;
+  }
+  return null;
+};
+
+// Todas las imágenes de una carpeta y sus subcarpetas
+const recolectarImagenes = (c: Carpeta): ImagenCargada[] => [
+  ...c.imagenes,
+  ...c.subcarpetas.flatMap(recolectarImagenes),
+];
+
+// CORREGIDO: reconstruye el árbol de carpetas a partir de lo guardado en la BD
+const reconstruirArbol = (restauradas: ImagenRestaurada[]): Carpeta[] => {
+  const raiz: Carpeta[] = [{ ...CARPETA_INICIAL, imagenes: [], subcarpetas: [] }];
+
+  restauradas.forEach(({ carpeta, imagen }) => {
+    const segmentos = carpeta.split('/').filter(Boolean);
+    const ruta: string[] = segmentos.length > 0 ? segmentos : ['General'];
+
+    let nivel: Carpeta[] = raiz;
+    let parentId: string | null = null;
+    let destino: Carpeta | null = null;
+    const acumulado: string[] = [];
+
+    for (const nombre of ruta) {
+      acumulado.push(nombre);
+
+      let hallada: Carpeta | undefined = nivel.find((c: Carpeta) => c.nombre === nombre);
+      if (!hallada) {
+        const nueva: Carpeta = {
+          id: `carpeta-bd-${acumulado.join('/')}`,
+          nombre,
+          imagenes: [],
+          subcarpetas: [],
+          parentId,
+        };
+        nivel.push(nueva);
+        hallada = nueva;
+      }
+
+      destino = hallada;
+      parentId = hallada.id;
+      nivel = hallada.subcarpetas;
+    }
+
+    if (destino) destino.imagenes.push(imagen);
+  });
+
+  return raiz;
+};
+
 export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { usuario } = useAuth();
   const [carpetas, setCarpetas] = useState<Carpeta[]>([CARPETA_INICIAL]);
@@ -88,11 +145,29 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [imagenSeleccionadaId, setImagenSeleccionadaId] = useState<string | null>(null);
   const [reportes, setReportes] = useState<ReporteGenerado[]>([]);
 
+  // Al cambiar de usuario limpia el estado y RESTAURA la galería desde el backend
   useEffect(() => {
+    let cancelado = false;
+
     setCarpetas([CARPETA_INICIAL]);
     setCarpetaActivaId('general');
     setImagenSeleccionadaId(null);
     setReportes([]);
+
+    if (!usuario) return;
+
+    listarImagenesDeUsuario(usuario.id)
+      .then((restauradas) => {
+        if (cancelado || restauradas.length === 0) return;
+        setCarpetas(reconstruirArbol(restauradas));
+      })
+      .catch(() => {
+        // Si falla la carga, queda la galería vacía (se puede volver a intentar al recargar).
+      });
+
+    return () => {
+      cancelado = true;
+    };
   }, [usuario?.id]);
 
   const actualizarImagenEnArbol = (
@@ -106,14 +181,14 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
       subcarpetas: actualizarImagenEnArbol(c.subcarpetas, imagenId, cambios),
     }));
 
-  // NUEVO
   const actualizarImagen = (imagenId: string, cambios: Partial<ImagenCargada>) => {
     setCarpetas((prev) => actualizarImagenEnArbol(prev, imagenId, cambios));
   };
 
-  const subirImagenesAlBackend = (imagenes: ImagenCargada[]) => {
+  // Recibe la ruta de carpeta y la manda al backend junto con el usuario
+  const subirImagenesAlBackend = (imagenes: ImagenCargada[], carpetaRuta: string) => {
     imagenes.forEach((imagen) => {
-      subirImagenTermografica(imagen.archivo)
+      subirImagenTermografica(imagen.archivo, usuario?.id, carpetaRuta)
         .then((analizada) => {
           setCarpetas((prev) =>
             actualizarImagenEnArbol(prev, imagen.id, {
@@ -125,7 +200,7 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
               parametros: analizada.parametros,
               infoImagen: analizada.infoImagen,
               puntos: analizada.puntos,
-              observaciones: analizada.observaciones, // NUEVO
+              observaciones: analizada.observaciones,
             })
           );
         })
@@ -194,7 +269,9 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
   const agregarImagenes = (carpetaId: string, archivos: File[]) => {
     const nuevasImagenes = crearImagenesDesdeArchivos(archivos);
     setCarpetas((prev) => insertarEnArbolPorId(prev, carpetaId, nuevasImagenes));
-    subirImagenesAlBackend(nuevasImagenes);
+    // Se guarda en qué carpeta quedó
+    const carpetaRuta = (rutaDeCarpeta(carpetas, carpetaId) ?? ['General']).join('/');
+    subirImagenesAlBackend(nuevasImagenes, carpetaRuta);
   };
 
   const cargarCarpetaDesdeArchivos = (archivos: File[], nombrePorDefecto: string): string => {
@@ -214,21 +291,21 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     let arbolNuevo = carpetas;
     let idSeleccion = carpetaActivaId;
-    const todasLasNuevasImagenes: ImagenCargada[] = [];
 
     grupos.forEach((archivosGrupo, ruta) => {
       const segmentos = ruta.startsWith('__raiz__/') ? [ruta.replace('__raiz__/', '')] : ruta.split('/');
       const imagenesGrupo = crearImagenesDesdeArchivos(archivosGrupo);
-      todasLasNuevasImagenes.push(...imagenesGrupo);
       arbolNuevo = insertarEnArbol(arbolNuevo, segmentos, imagenesGrupo);
 
       const hoja = buscarCarpetaPorRuta(arbolNuevo, segmentos);
       if (hoja) idSeleccion = hoja.id;
+
+      // Cada grupo se sube con su propia ruta de carpeta
+      subirImagenesAlBackend(imagenesGrupo, segmentos.join('/'));
     });
 
     setCarpetas(arbolNuevo);
     setCarpetaActivaId(idSeleccion);
-    subirImagenesAlBackend(todasLasNuevasImagenes);
     return idSeleccion;
   };
 
@@ -236,6 +313,15 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const eliminarImagenes = (carpetaId: string, imagenIds: string[]) => {
     const idsAEliminar = new Set(imagenIds);
+
+    // Borrar también en el servidor
+    const carpeta = buscarCarpetaPorId(carpetas, carpetaId);
+    carpeta?.imagenes
+      .filter((img) => idsAEliminar.has(img.id) && img.idBackend)
+      .forEach((img) => {
+        eliminarImagenTermografica(img.idBackend as number).catch(() => {});
+      });
+
     setCarpetas((prev) => eliminarImagenesDeArbol(prev, carpetaId, idsAEliminar));
 
     if (imagenSeleccionadaId && idsAEliminar.has(imagenSeleccionadaId)) {
@@ -244,6 +330,16 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const eliminarCarpeta = (carpetaId: string) => {
+    // Borrar en el servidor todas las imágenes de la carpeta y sus subcarpetas
+    const carpeta = buscarCarpetaPorId(carpetas, carpetaId);
+    if (carpeta) {
+      recolectarImagenes(carpeta)
+        .filter((img) => img.idBackend)
+        .forEach((img) => {
+          eliminarImagenTermografica(img.idBackend as number).catch(() => {});
+        });
+    }
+
     setCarpetas((prev) => {
       const { lista, eliminada } = eliminarDeArbol(prev, carpetaId);
       if (eliminada) revocarUrlsRecursivo(eliminada);
@@ -291,7 +387,7 @@ export const GaleriaProvider: React.FC<{ children: ReactNode }> = ({ children })
         obtenerCarpeta,
         registrarReporte,
         actualizarTemperaturaReflejada,
-        actualizarImagen, // NUEVO
+        actualizarImagen,
       }}
     >
       {children}

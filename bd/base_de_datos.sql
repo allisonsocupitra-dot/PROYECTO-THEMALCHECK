@@ -47,7 +47,8 @@ CREATE TABLE imagen_termografica (
     temp_min DECIMAL(6,2),
     id_usuario INT,
     id_informe INT,
-    observaciones TEXT NULL
+    observaciones TEXT NULL,
+    carpeta VARCHAR(500) NULL
 );
 
 CREATE TABLE punto_medicion (
@@ -72,6 +73,11 @@ CREATE TABLE punto_medicion (
     color VARCHAR(20) NULL
 );
 
+CREATE TABLE clave_admin (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    clave_hash VARCHAR(255) NOT NULL
+);
+
 ALTER TABLE usuario
     ADD CONSTRAINT fk_usuario_rol
     FOREIGN KEY (id_rol) REFERENCES rol(id_rol);
@@ -84,3 +90,4 @@ INSERT INTO rol (tipo_rol) VALUES
   ('Tecnico'),
   ('Administrador');
   
+INSERT INTO clave_admin (clave_hash) VALUES ('$2b$12$ra9bbA46b2Yw3sDwWtEH/eL21p0AbuNLASt2x0vws9DBzFYaRJsA.');

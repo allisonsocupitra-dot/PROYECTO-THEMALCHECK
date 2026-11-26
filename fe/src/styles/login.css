@@ -244,8 +244,11 @@ button:hover{
     text-decoration: underline;
 }
 
+
+
 @media (max-width: 600px) {
     .auth-header { align-items: flex-start; flex-direction: column; gap: 8px; padding-top: 18px; padding-bottom: 18px; }
     .login-container { padding: 30px 22px; }
     .input-box { width: 100%; }
 }
+

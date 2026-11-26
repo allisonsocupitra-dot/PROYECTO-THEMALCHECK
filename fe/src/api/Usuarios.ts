@@ -1,7 +1,7 @@
 import type { Rol, Usuario } from '../types/auth';
 import { API_BASE_URL } from './Config';
 
-export type CodigoErrorAuth = 'credenciales' | 'rol' | 'correoExistente' | 'error';
+export type CodigoErrorAuth = 'credenciales' | 'rol' | 'clave' | 'correoExistente' | 'error';
 
 export interface ErrorAuth {
   codigo: CodigoErrorAuth;
@@ -22,7 +22,14 @@ function normalizarRol(nombreRol: string): Rol {
 // y devuelve los datos del usuario (sin token).
 // Si el rol no coincide con el real de la cuenta, responde 403 con
 // { detail: "Esta cuenta está registrada como Tecnico|Administrador." }
-export const iniciarSesion = async (correo: string, contraseña: string, rol: Rol): Promise<Usuario> => {
+// Si la cuenta es admin y la clave de administración falta o es incorrecta,
+// responde 403 con { detail: "CLAVE_ADMIN_INVALIDA" }
+export const iniciarSesion = async (
+  correo: string,
+  contraseña: string,
+  rol: Rol,
+  claveAdmin?: string
+): Promise<Usuario> => {
   const respuesta = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -30,6 +37,7 @@ export const iniciarSesion = async (correo: string, contraseña: string, rol: Ro
       correo_usuario: correo,
       contraseña_usuario: contraseña,
       rol,
+      clave_admin: claveAdmin,
     }),
   });
 
@@ -37,6 +45,13 @@ export const iniciarSesion = async (correo: string, contraseña: string, rol: Ro
     const cuerpo = await respuesta.json().catch(() => null);
     if (respuesta.status === 403) {
       const detalle = String(cuerpo?.detail ?? '');
+
+      // La clave de administración se comprueba ANTES que el rol (ambos errores son 403)
+      if (detalle === 'CLAVE_ADMIN_INVALIDA') {
+        const error: ErrorAuth = { codigo: 'clave', mensaje: detalle };
+        throw error;
+      }
+
       const error: ErrorAuth = {
         codigo: 'rol',
         rolReal: detalle.includes('Administrador') ? 'admin' : 'tecnico',

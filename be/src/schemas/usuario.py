@@ -13,6 +13,7 @@ class UsuarioLogin(BaseModel):
     correo_usuario: EmailStr
     contraseña_usuario: str
     rol: Literal["tecnico", "admin"]
+    clave_admin: Optional[str] = None
 
 class UsuarioOut(UsuarioBase):
     id_usuario: int

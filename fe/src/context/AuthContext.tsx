@@ -13,7 +13,7 @@ interface ResultadoAuth {
 interface AuthContextType {
   usuario: Usuario | null;
   estaAutenticado: boolean;
-  login: (correo: string, contraseña: string, rol: Rol) => Promise<ResultadoAuth>;
+  login: (correo: string, contraseña: string, rol: Rol, claveAdmin?: string) => Promise<ResultadoAuth>;
   registrar: (nombre: string, apellido: string, correo: string, contraseña: string, rol: Rol) => Promise<ResultadoAuth>;
   logout: () => void;
 }
@@ -40,9 +40,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     sessionStorage.setItem(CLAVE_USUARIO, JSON.stringify(u));
   };
 
-  const login = async (correo: string, contraseña: string, rol: Rol): Promise<ResultadoAuth> => {
+  const login = async (
+    correo: string,
+    contraseña: string,
+    rol: Rol,
+    claveAdmin?: string
+  ): Promise<ResultadoAuth> => {
     try {
-      const usuarioAutenticado = await iniciarSesion(correo, contraseña, rol);
+      const usuarioAutenticado = await iniciarSesion(correo, contraseña, rol, claveAdmin);
       guardarSesion(usuarioAutenticado);
       return { ok: true };
     } catch (err) {

@@ -28,6 +28,7 @@ class ImagenTermografica(Base):
     temp_min = Column(DECIMAL(6, 2), nullable=True)
     id_usuario = Column(Integer, nullable=True)
     id_informe = Column(Integer, nullable=True)
+    carpeta = Column(String(500), nullable=True)  # ruta de carpeta del visor, ej. "Torre A/Piso 2"
 
     # Notas del visor (tabla clave/valor serializada como JSON por el frontend)
     observaciones = Column(Text, nullable=True)

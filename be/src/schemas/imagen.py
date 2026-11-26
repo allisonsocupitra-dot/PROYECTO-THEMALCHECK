@@ -72,6 +72,9 @@ class PuntosMedicionGuardar(BaseModel):
 class ImagenTermograficaOut(BaseModel):
     id_imagen: int
     nombre_archivo: str
+    ruta_archivo: Optional[str] = None      # NUEVO
+    carpeta: Optional[str] = None           # NUEVO
+    id_usuario: Optional[int] = None        # NUEVO
     fecha_modificacion: Optional[datetime] = None
     ancho: Optional[int] = None
     alto: Optional[int] = None

@@ -27,8 +27,12 @@ interface PuntoMedicionCrudo {
   color?: string | null;
 }
 
-interface ImagenTermograficaOutCruda {
+export interface ImagenTermograficaOutCruda {
   id_imagen: number;
+  nombre_archivo?: string | null;   // NUEVO
+  ruta_archivo?: string | null;     // NUEVO
+  carpeta?: string | null;          // NUEVO
+  id_usuario?: number | null;       // NUEVO
   // El schema del backend expone temp_min / temp_max; se aceptan ambos nombres.
   temp_min?: number | null;
   temp_max?: number | null;
@@ -41,6 +45,9 @@ interface ImagenTermograficaOutCruda {
   modelo_camara?: string | null;
   numero_serie?: string | null;
   distancia_focal?: string | number | null;
+  numero_f?: number | null;         // NUEVO
+  latitud?: number | null;          // NUEVO
+  longitud?: number | null;         // NUEVO
   apertura?: string | null;
   ancho?: number | null;
   alto?: number | null;
@@ -79,7 +86,8 @@ const mapearPunto = (p: PuntoMedicionCrudo): PuntoMedicionGuardado => ({
   color: p.color ?? null,
 });
 
-const mapearImagenCruda = (datos: ImagenTermograficaOutCruda): ImagenAnalizada => ({
+// CAMBIADO: ahora se exporta (la usa GaleriaGuardada.ts para restaurar la galería)
+export const mapearImagenCruda = (datos: ImagenTermograficaOutCruda): ImagenAnalizada => ({
   idBackend: datos.id_imagen,
   temperaturaMin: datos.temperatura_min ?? datos.temp_min ?? null,
   temperaturaMax: datos.temperatura_max ?? datos.temp_max ?? null,
@@ -93,11 +101,16 @@ const mapearImagenCruda = (datos: ImagenTermograficaOutCruda): ImagenAnalizada =
     modelo: datos.modelo_camara ?? undefined,
     numeroSerie: datos.numero_serie ?? undefined,
     distanciaFocal: datos.distancia_focal != null ? String(datos.distancia_focal) : undefined,
-    apertura: datos.apertura ?? undefined,
+    apertura:
+      datos.apertura ?? (datos.numero_f != null ? `f/${datos.numero_f}` : undefined),
     ancho: datos.ancho ?? undefined,
     alto: datos.alto ?? undefined,
     modificado: datos.fecha_modificacion ?? undefined,
-    coordenadas: datos.coordenadas ?? undefined,
+    coordenadas:
+      datos.coordenadas ??
+      (datos.latitud != null && datos.longitud != null
+        ? `${datos.latitud}, ${datos.longitud}`
+        : undefined),
   },
   puntos: (datos.puntos_medicion ?? []).map(mapearPunto),
   observaciones: datos.observaciones ?? '',
@@ -105,9 +118,16 @@ const mapearImagenCruda = (datos: ImagenTermograficaOutCruda): ImagenAnalizada =
 
 // POST /imagenes/upload — sube el archivo físico y devuelve el análisis inicial
 // (propiedades extraídas automáticamente por el backend).
-export const subirImagenTermografica = async (archivo: File): Promise<ImagenAnalizada> => {
+// CAMBIADO: ahora envía también el usuario dueño y la carpeta del visor.
+export const subirImagenTermografica = async (
+  archivo: File,
+  idUsuario?: number | string,
+  carpeta?: string
+): Promise<ImagenAnalizada> => {
   const formData = new FormData();
   formData.append('archivo', archivo);
+  if (idUsuario !== undefined && idUsuario !== null) formData.append('id_usuario', String(idUsuario));
+  if (carpeta) formData.append('carpeta', carpeta);
 
   const respuesta = await fetch(`${API_BASE_URL}/api/v1/imagenes/upload`, {
     method: 'POST',

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from api.deps import get_db
 from src.models.usuario import Usuario
 from src.models.rol import Rol
+from src.models.clave_admin import ClaveAdmin
 from src.schemas.usuario import UsuarioCreate, UsuarioLogin, UsuarioOut, LoginResponse
 from src.core.security import hash_password, verify_password
 
@@ -65,6 +66,16 @@ def login(datos_login: UsuarioLogin, db: Session = Depends(get_db)):
             status_code=403,
             detail=f"Esta cuenta está registrada como {usuario.rol.tipo_rol}."
         )
+
+    # NUEVO: clave de administración, solo se exige a cuentas de administrador
+    if usuario.rol.tipo_rol == ROLES["admin"]:
+        registro = db.query(ClaveAdmin).first()
+        if (
+            not datos_login.clave_admin
+            or not registro
+            or not verify_password(datos_login.clave_admin, registro.clave_hash)
+        ):
+            raise HTTPException(status_code=403, detail="CLAVE_ADMIN_INVALIDA")
 
     return {
         "id_usuario": usuario.id_usuario,

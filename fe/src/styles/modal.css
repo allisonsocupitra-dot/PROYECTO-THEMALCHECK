@@ -161,3 +161,68 @@
   border-color: #c0392b;
   color: #c0392b;
 }
+
+/* ===== Modal de clave de administración ===== */
+.panel-clave {
+  text-align: center;
+}
+
+.icono-clave {
+  font-size: 44px;
+  color: #1f3a4d;
+  margin-bottom: 12px;
+}
+
+.input-clave {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e0;
+  background: #f7fafc;
+  color: #1a202c;
+  font-size: 15px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.input-clave:focus {
+  outline: none;
+  border-color: #1f3a4d;
+}
+
+.clave-error {
+  color: #c0392b;
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+
+.clave-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.clave-acciones button {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clave-continuar {
+  border: none;
+  background: #1f3a4d;
+  color: #fff;
+}
+
+.clave-continuar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clave-cancelar {
+  border: 1px solid #cbd5e0;
+  background: #f7fafc;
+  color: #1a202c;
+}

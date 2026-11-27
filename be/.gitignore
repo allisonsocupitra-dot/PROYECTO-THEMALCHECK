@@ -1,5 +1,20 @@
-.env
+# Entornos virtuales
 venv/
+venv_sqa/
+.venv/
 venv_local/
+
+# Archivos temporales de Python
 __pycache__/
 *.pyc
+
+# Pytest
+.pytest_cache/
+
+# Reportes de cobertura
+.coverage
+.coverage.*
+htmlcov/
+
+# Variables de entorno y credenciales
+.env
